@@ -1,5 +1,5 @@
 #!/bin/bash
-cd /var/nodejs/telcohq
+cd /home/sdslearn/repositories/stockservice/bin
 touch ./log/telcohq2_startup.log
 service=stock_service
 canrestart=1
