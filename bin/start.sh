@@ -1,7 +1,7 @@
 #!/bin/bash
 cd $(dirname "$0")
 cd ../
-
+mkdir -p logs
 touch ./logs/stock_service.log
 touch ./logs/git_head.log
 
