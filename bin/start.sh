@@ -10,7 +10,7 @@ canrestart=1
 
 appPid=$(ps -ef | grep -v grep | grep $processIdentity | awk '{print $2}');
 
-if [ $(cat 'logs/git_head.log') != $(git rev-parse HEAD) ]
+if [ "$(cat 'logs/git_head.log')" != "$(git rev-parse HEAD)" ]
 then 
     echo $(git rev-parse HEAD) > ./logs/git_head.log
     if [ $appPid ] 
