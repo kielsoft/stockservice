@@ -21,11 +21,11 @@ export class WarehouseLocationService  {
     }
 
     getOne(location: WarehouseLocationFetchInput): Promise<WarehouseLocation> {
-        return this.locationRepo.findOneOrFail(location, {relations: ["warehouse", ]});
+        return this.locationRepo.findOneOrFail(location, {relations: ["warehouse", "items"]});
     }
 
     fetchAll(location: WarehouseLocationFetchInput): Promise<WarehouseLocation[]> {
-        return this.locationRepo.find({where: location, relations: ["warehouse", ]}).catch(error => {
+        return this.locationRepo.find({where: location, relations: ["warehouse", "items"]}).catch(error => {
             console.log(error.message);
             throw new Error("Error fetching warehouse locations")
         })

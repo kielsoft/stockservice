@@ -73,11 +73,11 @@ export class InboundService  {
     }
 
     getOne(inbound: InboundFetchInput): Promise<Inbound> {
-        return this.repo.findOneOrFail(inbound, {relations: ["items", "items.warehouseLocation", 'warehouse']});
+        return this.repo.findOneOrFail(inbound, {relations: ["warehouse", "items",]});
     }
 
     fetchAll(inbound: InboundFetchInput): Promise<Inbound[]> {
-        return this.repo.find({where: inbound, relations: ["items", "items.warehouseLocation", 'warehouse']}).catch(error => {
+        return this.repo.find({where: inbound, relations: ["warehouse", "items"]}).catch(error => {
             console.log(error.message);
             throw new Error("Error fetching warehouses")
         })

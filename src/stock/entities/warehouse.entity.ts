@@ -23,11 +23,11 @@ export class Warehouse extends BaseEntity {
     @Field()
     isActive: boolean;
 
-    @OneToMany(type => WarehouseLocation, location => location.warehouse)
+    @OneToMany(type => WarehouseLocation, location => location.warehouse, {nullable: true})
     @Field(type => [WarehouseLocation], {nullable: true})
-    locations: WarehouseLocation[];
+    locations?: WarehouseLocation[];
     
-    @OneToMany(type => Inbound, inbound => inbound.warehouse)
+    @OneToMany(type => Inbound, inbound => inbound.warehouse, {nullable: true})
     @Field(type => [Inbound], {nullable: true})
-    inboundItems: Inbound[];
+    inboundItems?: Inbound[];
 }
