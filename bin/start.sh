@@ -15,20 +15,14 @@ then
     echo $(git rev-parse HEAD) > ./logs/git_head.log
     if [ $appPid ] 
     then
-        echo "[ $appPid ] killing StockService app to reinstall npm packages..."
+        echo "[ $appPid ] killing StockService app to reinstall npm packages..."  >> ./logs/stock_service.log
         kill -9 $appPid;
-        echo "StockService killed."
+        echo "StockService killed."  >> ./logs/stock_service.log
     fi
-    chown -R sdslearn:sdslearn ./logs
 
-    su - sdslearn
-    echo "Reloading npm packages..."
+    echo "Reloading npm packages..."  >> ./logs/stock_service.log
     npm install
-else
-    chown -R sdslearn:sdslearn ./logs
 fi
-
-su - sdslearn
 
 if [ $appPid ] 
 then
