@@ -7,7 +7,6 @@ touch ./logs/git_head.log
 
 processIdentity=stockservice/node_modules
 canrestart=1
-me=$(whoami)
 
 appPid=$(ps -ef | grep -v grep | grep $processIdentity | awk '{print $2}');
 
