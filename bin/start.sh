@@ -19,10 +19,13 @@ then
         kill -9 $appPid;
         echo "StockService killed."
     fi
+    chown -R sdslearn:sdslearn ./logs
 
     su - sdslearn
     echo "Reloading npm packages..."
     npm install
+else
+    chown -R sdslearn:sdslearn ./logs
 fi
 
 su - sdslearn
