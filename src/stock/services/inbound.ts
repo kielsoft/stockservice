@@ -20,7 +20,7 @@ export class InboundService  {
         delete inbound.items;
         return this.repo.save(inbound).then(receipt => {
             items.map(async inboundItem => await this.saveItem({...inboundItem, inboundId: receipt.id}));
-            return this.getOne({id: receipt.id});
+            return this.getOne(receipt);
         });
     }
 
@@ -29,9 +29,7 @@ export class InboundService  {
     }
     
     update(inboundInput: InboundUpdateInput): Promise<Inbound> {
-        return this.repo.save(inboundInput).then(async inbound => {
-            return this.getOne({id: inbound.id});
-        })
+        return this.repo.save(inboundInput).then(inbound => this.getOne(inbound))
     }
 
     putAway(putAwayInput: InboundPutAwayInput): Promise<Inbound>{
@@ -75,11 +73,11 @@ export class InboundService  {
     }
 
     getOne(inbound: InboundFetchInput): Promise<Inbound> {
-        return this.repo.findOneOrFail(inbound, {relations: ["items"]});
+        return this.repo.findOneOrFail(inbound, {relations: ["items", "items.warehouseLocation", 'warehouse']});
     }
 
     fetchAll(inbound: InboundFetchInput): Promise<Inbound[]> {
-        return this.repo.find(inbound).catch(error => {
+        return this.repo.find({where: inbound, relations: ["items", "items.warehouseLocation", 'warehouse']}).catch(error => {
             console.log(error.message);
             throw new Error("Error fetching warehouses")
         })

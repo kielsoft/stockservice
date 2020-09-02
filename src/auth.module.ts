@@ -5,10 +5,15 @@ import { AuthGuard, PassportModule, PassportStrategy } from '@nestjs/passport';
 import config from "./config";
 import { GqlExecutionContext } from '@nestjs/graphql';
 
+export interface IJwtUserData {
+    user_id: string,
+    contact_name: string,
+    branch_id: string,
+    email: string,
+}
+
 export interface IJwtPayload {
-    id: number,
-    role_id: number
-    role_name: string,
+    data: IJwtUserData
 }
 
 @Injectable()
@@ -31,7 +36,7 @@ class JwtStrategy extends PassportStrategy(Strategy) {
 
     async validate(payload: IJwtPayload) {
         // do something with payload, if any.
-        return payload;
+        return payload.data;
     }
 }
 

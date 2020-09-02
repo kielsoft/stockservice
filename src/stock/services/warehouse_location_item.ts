@@ -12,25 +12,22 @@ export class WarehouseLocationItemService  {
         @InjectRepository(WarehouseLocationItem) private readonly repo: Repository<WarehouseLocationItem>,
     ) {}
 
-    create(location: WarehouseLocationItemCreateInput): Promise<WarehouseLocationItem> {
-        console.log(location);
-        return this.repo.save(location);
+    create(item: WarehouseLocationItemCreateInput): Promise<WarehouseLocationItem> {
+        return this.repo.save(item).then(item => this.getOne(item));
     }
     
-    update(location: WarehouseLocationItemUpdateInput): Promise<WarehouseLocationItem> {
-        return this.repo.save(location).then(location => {
-            return this.repo.findOneOrFail({id: location.id});
-        })
+    update(item: WarehouseLocationItemUpdateInput): Promise<WarehouseLocationItem> {
+        return this.repo.save(item).then(item => this.getOne(item))
     }
 
-    getOne(location: WarehouseLocationItemFetchInput): Promise<WarehouseLocationItem> {
-        return this.repo.findOneOrFail(location);
+    getOne(item: WarehouseLocationItemFetchInput): Promise<WarehouseLocationItem> {
+        return this.repo.findOneOrFail(item, {relations: ["warehouseLocation", "warehouseLocation.warehouse"]});
     }
 
-    fetchAll(location: WarehouseLocationItemFetchInput): Promise<WarehouseLocationItem[]> {
-        return this.repo.find(location).catch(error => {
+    fetchAll(item: WarehouseLocationItemFetchInput): Promise<WarehouseLocationItem[]> {
+        return this.repo.find({where: item, relations: ["warehouseLocation", "warehouseLocation.warehouse"]}).catch(error => {
             console.log(error.message);
-            throw new Error("Error fetching warehouses")
+            throw new Error("Error fetching warehouse location items")
         })
     }
 }

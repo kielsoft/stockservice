@@ -14,6 +14,8 @@ export class InboundCreateInput {
     @Field({nullable: true})
     remark: string;
 
+    createdBy: number;
+
     @Field(type => [InboundItemCreateInput])
     items: InboundItemCreateInput[];
 
@@ -44,7 +46,6 @@ export class InboundPutAwayInput {
     @Field({nullable: true})
     remark?: string;
 
-    @Field()
     putawayBy: number;
 
     @Field(type => [InboundItemPutAwayInput])

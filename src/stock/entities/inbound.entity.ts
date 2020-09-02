@@ -30,6 +30,10 @@ export class Inbound extends BaseEntity {
     @Field({nullable: true})
     remark: string;
 
+    @Column()
+    @Field()
+    createdBy: number;
+    
     @Column({nullable: true})
     @Field({nullable: true})
     putawayBy: number;

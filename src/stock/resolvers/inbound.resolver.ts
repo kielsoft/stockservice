@@ -1,7 +1,7 @@
 
 import { Resolver, Query, Args, Mutation } from "@nestjs/graphql";
 import { UseGuards } from "@nestjs/common";
-import { JwtAuthGuard } from "../../auth.module";
+import { JwtAuthGuard, IJwtUserData, CurrentUser } from "../../auth.module";
 import { InboundService } from "../services";
 import { InboundCreateInput, InboundFetchInput, InboundUpdateInput, InboundPutAwayInput } from "../dtos";
 import { Inbound } from "../entities";
@@ -24,12 +24,14 @@ export class InboundResolver {
   }
 
   @Mutation(returns => Inbound)
-  async createGoodsReceipts(@Args("inboundCreateInput") inboundCreateInput: InboundCreateInput){
+  async createGoodsReceipts(@Args("inboundCreateInput") inboundCreateInput: InboundCreateInput, @CurrentUser() userData: IJwtUserData){
+      inboundCreateInput.createdBy = Number(userData.user_id);
       return await this.inboundService.create(inboundCreateInput);
   }
   
   @Mutation(returns => Inbound)
-  async putAwayGoodsReceipts(@Args("inboundPutAwayInput") inboundPutAwayInput: InboundPutAwayInput){
+  async putAwayGoodsReceipts(@Args("inboundPutAwayInput") inboundPutAwayInput: InboundPutAwayInput, @CurrentUser() userData: IJwtUserData){
+    inboundPutAwayInput.putawayBy = Number(userData.user_id);
       return await this.inboundService.putAway(inboundPutAwayInput);
   }
 

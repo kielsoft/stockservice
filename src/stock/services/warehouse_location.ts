@@ -13,24 +13,21 @@ export class WarehouseLocationService  {
     ) {}
 
     create(location: WarehouseLocationCreateInput): Promise<WarehouseLocation> {
-        console.log(location);
-        return this.locationRepo.save(location);
+        return this.locationRepo.save(location).then(location => this.getOne(location));
     }
     
     update(location: WarehouseLocationUpdateInput): Promise<WarehouseLocation> {
-        return this.locationRepo.save(location).then(location => {
-            return this.locationRepo.findOneOrFail({id: location.id});
-        })
+        return this.locationRepo.save(location).then(location => this.getOne(location))
     }
 
     getOne(location: WarehouseLocationFetchInput): Promise<WarehouseLocation> {
-        return this.locationRepo.findOneOrFail(location);
+        return this.locationRepo.findOneOrFail(location, {relations: ["warehouse", ]});
     }
 
     fetchAll(location: WarehouseLocationFetchInput): Promise<WarehouseLocation[]> {
-        return this.locationRepo.find(location).catch(error => {
+        return this.locationRepo.find({where: location, relations: ["warehouse", ]}).catch(error => {
             console.log(error.message);
-            throw new Error("Error fetching warehouses")
+            throw new Error("Error fetching warehouse locations")
         })
     }
 

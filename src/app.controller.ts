@@ -5,6 +5,6 @@ export class AppController {
 
     @Get()
     getHello(): string {
-        return "hello";
+        return "Welcome to StockService";
     }
 }
