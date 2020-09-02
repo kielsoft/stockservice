@@ -29,6 +29,6 @@ then
     echo "[ $appPid ] StockService is currently running" >> ./logs/stock_service.log
 elif (($canrestart == '1'))
 then
-    echo "$(date) :     StockService is started!!!:"  >> ./logs/stock_service.log
+    echo "$(date) : $(whoami) : StockService is started!!!:"  >> ./logs/stock_service.log
     nohup npm run start:prod  >> ./logs/stock_service.log 2>&1 &
 fi
