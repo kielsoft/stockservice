@@ -7,6 +7,7 @@ touch ./logs/git_head.log
 
 processIdentity=stockservice/node_modules
 canrestart=1
+me=$(whoami)
 
 appPid=$(ps -ef | grep -v grep | grep $processIdentity | awk '{print $2}');
 
@@ -20,13 +21,16 @@ then
         echo "StockService killed."
     fi
 
+    su - sdslearn
     echo "Reloading npm packages..."
     npm install
 fi
 
+su - sdslearn
+
 if [ $appPid ] 
 then
-    echo "[ $appPid ] StockService is currently running" >> ./logs/stock_service.log
+    echo "[ $appPid $(date) : $(whoami) ] StockService is currently running" >> ./logs/stock_service.log
 elif (($canrestart == '1'))
 then
     echo "$(date) : $(whoami) : StockService is started!!!:"  >> ./logs/stock_service.log
