@@ -8,6 +8,13 @@ import { ObjectType, Field } from '@nestjs/graphql';
 @ObjectType()
 @Index('UNIQ_status_code', ['code'], { unique: true})
 export class Status extends BaseEntity {
+
+    static readonly CODE = {
+        pending: "pending",
+        received: "received",
+        completed: "completed",
+    }
+
     @PrimaryGeneratedColumn()
     @Field()
     id: number;

@@ -1,4 +1,7 @@
 import { Field, Int, ObjectType, InputType } from '@nestjs/graphql';
+import { PaginationInputData, PaginationResponseData } from './base';
+import { type } from 'os';
+import { Warehouse, WarehouseLocation, WarehouseLocationItem } from '../entities';
 
 @InputType()
 export class WarehouseCreateInput {
@@ -34,6 +37,9 @@ export class WarehouseFetchInput {
 
     @Field({nullable: true})
     isActive?: boolean;
+    
+    @Field(type => PaginationInputData, {nullable: true, defaultValue: {limit: 50, page: 1}})
+    pagination?: PaginationInputData;
 }
 
 // Warehouse Location
@@ -74,6 +80,9 @@ export class WarehouseLocationFetchInput {
 
     @Field({nullable: true})
     availableToSell?: boolean;
+
+    @Field(type => PaginationInputData, {nullable: true, defaultValue: {limit: 50, page: 1}})
+    pagination?: PaginationInputData;
 }
 
 
@@ -115,4 +124,27 @@ export class WarehouseLocationItemFetchInput {
 
     @Field({nullable: true})
     sku?: string;
+
+    @Field(type => PaginationInputData, {nullable: true, defaultValue: {limit: 50, page: 1}})
+    pagination?: PaginationInputData;
+}
+
+// Response Objects
+
+@ObjectType()
+export class WarehouseFetchResponseData extends PaginationResponseData {
+    @Field(type => [Warehouse], {nullable: true})
+    data: Warehouse[];
+}
+
+@ObjectType()
+export class WarehouseLocationFetchResponseData  extends PaginationResponseData {
+    @Field(type => [WarehouseLocation], {nullable: true})
+    data: WarehouseLocation[];
+}
+
+@ObjectType()
+export class WarehouseLocationItemFetchResponseData extends PaginationResponseData {
+    @Field(type => [WarehouseLocationItem], {nullable: true})
+    data: WarehouseLocationItem[];
 }

@@ -2,7 +2,7 @@ import { BaseEntity as TypeormBaseEntity, Column, BeforeInsert, CreateDateColumn
 import { Validator } from 'validator.ts/Validator';
 import { ValidationErrorInterface } from 'validator.ts/ValidationErrorInterface';
 import { HttpException, HttpStatus } from '@nestjs/common';
-import { ObjectType } from '@nestjs/graphql';
+import { ObjectType, Field } from '@nestjs/graphql';
 
 const validator = new Validator();
 
@@ -10,9 +10,11 @@ const validator = new Validator();
 export class BaseEntity extends TypeormBaseEntity{
     
     @CreateDateColumn({ type: 'datetime', precision: 0, nullable: true, default: () => 'CURRENT_TIMESTAMP'})
+    @Field({nullable: true})
     createdAt: Date;
 
     @UpdateDateColumn({type: "timestamp", precision: 0, nullable: true, default: () => 'CURRENT_TIMESTAMP', onUpdate: "CURRENT_TIMESTAMP"})
+    @Field({nullable: true})
     updatedAt: Date;
 
     validate(throwIfError=true): ValidationErrorInterface[] {

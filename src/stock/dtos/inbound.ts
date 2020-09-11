@@ -1,4 +1,6 @@
-import { Field, Int, InputType } from '@nestjs/graphql';
+import { Field, Int, InputType, ObjectType } from '@nestjs/graphql';
+import { PaginationResponseData, PaginationInputData } from './base';
+import { Inbound, InboundItem } from '../entities';
 
 @InputType()
 export class InboundCreateInput {
@@ -65,6 +67,24 @@ export class InboundFetchInput {
 
     @Field({nullable: true})
     poNo?: string;
+
+    @Field(type => PaginationInputData, {nullable: true, defaultValue: {limit: 50, page: 1}})
+    pagination?: PaginationInputData;
+}
+
+@InputType()
+export class InboundItemFetchInput {
+    @Field({nullable: true})
+    id?: number;
+
+    @Field({nullable: true})
+    warehouseLocationId?: number;
+
+    @Field({nullable: true})
+    sku?: string;
+
+    @Field(type => PaginationInputData, {nullable: true, defaultValue: {limit: 50, page: 1}})
+    pagination?: PaginationInputData;
 }
 
 // Inbound Item
@@ -94,4 +114,19 @@ export class InboundItemPutAwayInput {
     @Field()
     warehouseLocationId: number;
 
+}
+
+
+// Response Objects
+
+@ObjectType()
+export class InboundFetchResponseData extends PaginationResponseData {
+    @Field(type => [Inbound], {nullable: true})
+    data: Inbound[];
+}
+
+@ObjectType()
+export class InboundItemFetchResponseData extends PaginationResponseData {
+    @Field(type => [InboundItem], {nullable: true})
+    data: InboundItem[];
 }

@@ -3,7 +3,7 @@ import { WarehouseLocationItem } from "../entities";
 import { UseGuards } from "@nestjs/common";
 import { JwtAuthGuard } from "../../auth.module";
 import { WarehouseLocationItemService } from "../services";
-import { WarehouseLocationItemFetchInput, WarehouseLocationItemCreateInput, WarehouseLocationItemUpdateInput } from "../dtos";
+import { WarehouseLocationItemFetchInput, WarehouseLocationItemCreateInput, WarehouseLocationItemUpdateInput, WarehouseLocationItemFetchResponseData } from "../dtos";
 
 @Resolver(of => WarehouseLocationItem)
 @UseGuards(JwtAuthGuard)
@@ -12,7 +12,7 @@ export class WarehouseLocationItemResolver {
       private readonly warehouseLocationItemService: WarehouseLocationItemService,
   ) {}
 
-  @Query(returns => [WarehouseLocationItem])
+  @Query(returns => WarehouseLocationItemFetchResponseData)
   async warehouseLocationItems(@Args("warehouseLocationItemFetchInput", {nullable: true}) warehouseLocationItemFetchInput?: WarehouseLocationItemFetchInput) {
       return this.warehouseLocationItemService.fetchAll(warehouseLocationItemFetchInput);
   }

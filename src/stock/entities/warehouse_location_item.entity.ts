@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToOne, } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToOne, Index, } from 'typeorm';
 import { BaseEntity } from './BaseEntity';
 import { WarehouseLocation } from './';
 import { ObjectType, Field } from '@nestjs/graphql';
@@ -6,6 +6,7 @@ import { ObjectType, Field } from '@nestjs/graphql';
 
 @Entity()
 @ObjectType()
+@Index('UNIQ_warehouse_loc_sku', ["warehouseLocationId", 'sku'], { unique: true})
 export class WarehouseLocationItem extends BaseEntity {
     @PrimaryGeneratedColumn()
     @Field()

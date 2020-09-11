@@ -1,9 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Inbound, InboundItem, WarehouseLocationItem } from '../entities';
-import { InboundCreateInput, InboundItemCreateInput, InboundUpdateInput, InboundFetchInput, InboundPutAwayInput, InboundItemPutAwayInput } from '../dtos';
+import { Inbound, InboundItem, Status } from '../entities';
+import { InboundCreateInput, InboundItemCreateInput, InboundUpdateInput, 
+    InboundFetchInput, InboundPutAwayInput, InboundItemPutAwayInput, 
+    InboundFetchResponseData, InboundItemFetchInput, InboundItemFetchResponseData } from '../dtos';
 import { InboundPutAwayError } from '../../errors';
+import { WarehouseLocationItemService } from './warehouse_location_item';
+import { buildPaginationWithData, itemArrayToObject } from './base';
 
 
 @Injectable()
@@ -12,7 +16,7 @@ export class InboundService  {
     constructor(
         @InjectRepository(Inbound) private readonly repo: Repository<Inbound>,
         @InjectRepository(InboundItem) private readonly itemRepo: Repository<InboundItem>,
-        @InjectRepository(WarehouseLocationItem) private readonly locationItemRepo: Repository<WarehouseLocationItem>,
+        private readonly locationItemRepo: WarehouseLocationItemService,
     ) {}
 
     async create(inbound: InboundCreateInput): Promise<Inbound> {
@@ -34,11 +38,16 @@ export class InboundService  {
 
     putAway(putAwayInput: InboundPutAwayInput): Promise<Inbound>{
         return this.getOne({id: putAwayInput.id}).then(async inbound => {
+
+            if(inbound.statusCode == Status.CODE.completed){
+                throw new Error(`GRN: ${inbound.id} already put away`);
+            }
+
             if(inbound.items.length != putAwayInput.items.length){
                 throw new Error("Invalid number of items");
             }
 
-            let inputItems = this.itemArrayToObject<InboundItemPutAwayInput>(putAwayInput.items);
+            let inputItems = itemArrayToObject<InboundItemPutAwayInput>(putAwayInput.items);
 
             for (let i = 0; i < inbound.items.length; i++) {
                 let item = inbound.items[i];
@@ -54,19 +63,27 @@ export class InboundService  {
                 await item.save();
             }
 
+            
+
+            inbound.items.forEach(async item => {
+                const warehouseLocationItem = await this.locationItemRepo.getOne({
+                    sku: item.sku,
+                    warehouseId: item.warehouseLocationId,
+                }).catch((error) => {
+                    return this.locationItemRepo.create({
+                        warehouseLocationId: item.warehouseLocationId,
+                        sku: item.sku,
+                        qty: 0,
+                    });
+                })
+                this.locationItemRepo.update({...warehouseLocationItem, qty: (warehouseLocationItem.qty+item.qty)})
+            })
+
             delete putAwayInput.items;
             inbound.load(putAwayInput);
-            inbound.statusCode = "completed"
+            inbound.statusCode = Status.CODE.completed;
+            return inbound.save();
 
-            return inbound.save().then(inbound => {
-                inbound.items.forEach(item => {
-                    let i = this.cloneData(item);
-                    delete i.createdAt;
-                    delete i.updatedAt;
-                    this.locationItemRepo.save(i);
-                })
-                return inbound;
-            });
         }).catch(error => {
             throw InboundPutAwayError(error.message)
         });
@@ -76,21 +93,42 @@ export class InboundService  {
         return this.repo.findOneOrFail(inbound, {relations: ["warehouse", "items",]});
     }
 
-    fetchAll(inbound: InboundFetchInput): Promise<Inbound[]> {
-        return this.repo.find({where: inbound, relations: ["warehouse", "items"]}).catch(error => {
-            console.log(error.message);
-            throw new Error("Error fetching warehouses")
+    async fetchAll(inbound: InboundFetchInput): Promise<InboundFetchResponseData> {
+        let pagination = inbound && inbound.pagination || {limit: 50, page: 1};
+        let skip = (pagination.page > 1)? (pagination.page-1) * pagination.limit : 0;
+        
+        let [data, total] = await this.repo.findAndCount({
+            where: inbound, 
+            relations: ["warehouse", "items"],
+            take: pagination.limit,
+            skip: skip
+        }).catch(error => {
+            throw new Error("Error fetching GRNs")
         })
-    }
 
-    private itemArrayToObject<T extends any>(items: {sku: string}[]): {[key: string]: T} {
-        let itemsObject: {[key: string]: T} = {}
-        items.forEach(item => itemsObject[item.sku] = item as T);
-        return itemsObject;
+        return {
+            data, 
+            count: data.length,
+            limit: pagination.limit,
+            page: pagination.page,
+            pages: Number((total/pagination.limit).toFixed())
+        }
     }
+    
+    async fetchAllItems(item: InboundItemFetchInput): Promise<InboundItemFetchResponseData> {
+        let pagination = item && item.pagination || {limit: 50, page: 1};
+        let skip = (pagination.page > 1)? (pagination.page-1) * pagination.limit : 0;
+        
+        let [data, total] = await this.itemRepo.findAndCount({
+            where: item, 
+            relations: ["inbound", "warehouseLocation"],
+            take: pagination.limit,
+            skip: skip
+        }).catch(error => {
+            throw new Error("Error fetching GRN items")
+        })
 
-    cloneData<T>(data: T): T {
-        return JSON.parse(JSON.stringify(data));
+        return buildPaginationWithData(data, total, pagination as any);
     }
     
 }

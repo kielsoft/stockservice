@@ -1,4 +1,8 @@
 #!/bin/bash
+
+# add this line to crobtab on the server using root account
+# */5 * * * * sudo -H -u sdslearn bash -c 'bash /home/sdslearn/repositories/stockservice/bin/start.sh'
+
 cd $(dirname "$0")
 cd ../
 mkdir -p logs

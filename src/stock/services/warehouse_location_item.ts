@@ -2,7 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { WarehouseLocationItem } from '../entities';
-import { WarehouseLocationItemCreateInput, WarehouseLocationItemUpdateInput, WarehouseLocationItemFetchInput } from '../dtos';
+import { WarehouseLocationItemCreateInput, WarehouseLocationItemUpdateInput, WarehouseLocationItemFetchInput, WarehouseLocationItemFetchResponseData } from '../dtos';
+import { buildPaginationWithData } from './base';
 
 
 @Injectable()
@@ -24,10 +25,19 @@ export class WarehouseLocationItemService  {
         return this.repo.findOneOrFail(item, {relations: ["warehouseLocation", "warehouseLocation.warehouse"]});
     }
 
-    fetchAll(item: WarehouseLocationItemFetchInput): Promise<WarehouseLocationItem[]> {
-        return this.repo.find({where: item, relations: ["warehouseLocation", "warehouseLocation.warehouse"]}).catch(error => {
-            console.log(error.message);
+    async fetchAll(item: WarehouseLocationItemFetchInput): Promise<WarehouseLocationItemFetchResponseData> {
+        let pagination = item && item.pagination || {limit: 50, page: 1};
+        let skip = (pagination.page > 1)? (pagination.page-1) * pagination.limit : 0;
+        
+        let [data, total] = await this.repo.findAndCount({
+            where: item, 
+            relations: ["warehouseLocation", "warehouseLocation.warehouse"],
+            take: pagination.limit,
+            skip: skip
+        }).catch(error => {
             throw new Error("Error fetching warehouse location items")
         })
+
+        return buildPaginationWithData(data, total, pagination as any);
     }
 }

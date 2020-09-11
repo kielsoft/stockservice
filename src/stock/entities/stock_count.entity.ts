@@ -19,15 +19,15 @@ export class StockCount extends BaseEntity {
 
     @Column({length: 100, nullable: false})
     @Field()
-    name: string;
-
-    @Column({length: 100, nullable: false})
-    @Field()
     sku: string;
 
     @Column({nullable: false})
     @Field()
     qty: number;
+
+    @Column({nullable: false, default: 0})
+    @Field()
+    warehouseSkuQty: number;
     
     @Column({nullable: false})
     @Field()
@@ -35,5 +35,5 @@ export class StockCount extends BaseEntity {
     
     @Column({type: 'text', nullable: true})
     @Field({nullable: true})
-    remark: number;
+    remark: string;
 }

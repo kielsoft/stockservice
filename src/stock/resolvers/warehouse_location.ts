@@ -1,4 +1,4 @@
-import { WarehouseLocationFetchInput, WarehouseLocationCreateInput, WarehouseLocationUpdateInput } from "../dtos";
+import { WarehouseLocationFetchInput, WarehouseLocationCreateInput, WarehouseLocationUpdateInput, WarehouseLocationFetchResponseData } from "../dtos";
 import { Resolver, Query, Args, Mutation } from "@nestjs/graphql";
 import { WarehouseLocation } from "../entities";
 import { UseGuards } from "@nestjs/common";
@@ -12,7 +12,7 @@ export class WarehouseLocationResolver {
       private readonly warehouseLocationService: WarehouseLocationService,
   ) {}
 
-  @Query(returns => [WarehouseLocation])
+  @Query(returns => WarehouseLocationFetchResponseData)
   async warehouseLocations(@Args("warehouseLocationFetchInput", {nullable: true}) warehouseLocationFetchInput?: WarehouseLocationFetchInput) {
       return this.warehouseLocationService.fetchAll(warehouseLocationFetchInput);
   }
