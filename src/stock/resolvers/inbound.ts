@@ -30,7 +30,7 @@ export class InboundResolver {
 
   @Mutation(returns => Inbound)
   async createGoodsReceipts(@Args("inboundCreateInput") inboundCreateInput: InboundCreateInput, @CurrentUser() userData: IJwtUserData){
-      inboundCreateInput.createdBy = Number(userData.user_id);
+      inboundCreateInput.userId = Number(userData.user_id);
       return await this.inboundService.create(inboundCreateInput);
   }
   

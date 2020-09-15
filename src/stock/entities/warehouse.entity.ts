@@ -1,6 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany, Index, } from 'typeorm';
 import { BaseEntity } from './BaseEntity';
-import { WarehouseLocation, Inbound } from './';
+import { WarehouseLocation, Inbound, Outbound } from './';
 import { ObjectType, Field, Int } from '@nestjs/graphql';
 
 @Entity()
@@ -30,4 +30,8 @@ export class Warehouse extends BaseEntity {
     @OneToMany(type => Inbound, inbound => inbound.warehouse, {nullable: true})
     @Field(type => [Inbound], {nullable: true})
     inboundItems?: Inbound[];
+    
+    @OneToMany(type => Outbound, outbound => outbound.warehouse, {nullable: true})
+    @Field(type => [Outbound], {nullable: true})
+    outboundItems?: Outbound[];
 }

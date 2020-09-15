@@ -17,6 +17,7 @@ export class WarehouseLocationItem extends BaseEntity {
     warehouseLocation: WarehouseLocation;
 
     @Column()
+    @Field()
     warehouseLocationId: number
 
     @Column({length: 100, nullable: false})

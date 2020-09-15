@@ -120,7 +120,7 @@ export class WarehouseLocationItemFetchInput {
     id?: number;
 
     @Field({nullable: true})
-    warehouseId?: number;
+    warehouseLocationId?: number;
 
     @Field({nullable: true})
     sku?: string;

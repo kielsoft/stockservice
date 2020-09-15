@@ -16,13 +16,11 @@ export class InboundCreateInput {
     @Field({nullable: true})
     remark: string;
 
-    createdBy: number;
-
     @Field(type => [InboundItemCreateInput])
     items: InboundItemCreateInput[];
 
-    @Field({nullable: true, defaultValue: "received"})
-    statusCode?: string;
+    userId: number;
+    statusCode: string;
 }
 
 @InputType()
@@ -80,6 +78,9 @@ export class InboundItemFetchInput {
     @Field({nullable: true})
     warehouseLocationId?: number;
 
+    @Field({nullable: true})
+    inboundId?: number;
+    
     @Field({nullable: true})
     sku?: string;
 

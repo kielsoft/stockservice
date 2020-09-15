@@ -2,6 +2,7 @@ import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToOne, Index, } 
 import { BaseEntity } from './BaseEntity';
 import { Warehouse, WarehouseLocationItem, InboundItem, StockCount } from './';
 import { Field, ObjectType } from '@nestjs/graphql';
+import { OutboundItem } from './outbound_item.entity';
 
 @Entity()
 @ObjectType()
@@ -16,19 +17,24 @@ export class WarehouseLocation extends BaseEntity {
     warehouse: Warehouse;
 
     @Column()
+    @Field()
     warehouseId: number
 
     @OneToMany(type => WarehouseLocationItem, warehouseLocationItem => warehouseLocationItem.warehouseLocation, {nullable: false})
     @Field(type => [WarehouseLocationItem], {nullable: true})
     items: WarehouseLocationItem[]; 
 
+    @OneToMany(type => InboundItem, inboundItem => inboundItem.warehouseLocation, {nullable: false})
+    @Field(type => [InboundItem], {nullable: true})
+    inboundItems: InboundItem[];
+    
+    @OneToMany(type => OutboundItem, outboundItem => outboundItem.warehouseLocation, {nullable: false})
+    @Field(type => [OutboundItem], {nullable: true})
+    outbountItems: OutboundItem[];
+
     @OneToMany(type => StockCount, cc => cc.warehouseLocation)
     @Field(type => [StockCount], {nullable: true})
     stockCounts: StockCount[]; 
-
-    @OneToMany(type => InboundItem, items => items.inbound)
-    @Field(type => [InboundItem], {nullable: true})
-    inboundItems: InboundItem[];
 
     @Column({length: 100, nullable: false})
     @Field()

@@ -15,6 +15,7 @@ export class StockCount extends BaseEntity {
     warehouseLocation: WarehouseLocation;
 
     @Column()
+    @Field()
     warehouseLocationId: number
 
     @Column({length: 100, nullable: false})

@@ -5,3 +5,5 @@ export * from './stock_count.entity';
 export * from './warehouse.entity';
 export * from './warehouse_location.entity';
 export * from './warehouse_location_item.entity';
+export * from './outbound.entity';
+export * from './outbound_item.entity';

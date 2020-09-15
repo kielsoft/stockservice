@@ -29,6 +29,8 @@ export class WarehouseLocationItemService  {
         let pagination = item && item.pagination || {limit: 50, page: 1};
         let skip = (pagination.page > 1)? (pagination.page-1) * pagination.limit : 0;
         
+        if(item) item.pagination = undefined;
+
         let [data, total] = await this.repo.findAndCount({
             where: item, 
             relations: ["warehouseLocation", "warehouseLocation.warehouse"],

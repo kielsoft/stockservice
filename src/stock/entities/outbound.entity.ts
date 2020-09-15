@@ -1,17 +1,17 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToOne, JoinColumn, Index, } from 'typeorm';
 import { BaseEntity } from './BaseEntity';
-import { Warehouse, Status, InboundItem } from './';
+import { Warehouse, Status, OutboundItem } from './';
 import { ObjectType, Field } from '@nestjs/graphql';
 
 @Entity()
 @ObjectType()
-@Index('UNIQ_inbound_grn', ["receiptNo", 'poNo'], { unique: true})
-export class Inbound extends BaseEntity {
+@Index('UNIQ_outbound_grn', ['requestNo'], { unique: true})
+export class Outbound extends BaseEntity {
     @PrimaryGeneratedColumn()
     @Field()
     id: number;
 
-    @ManyToOne(type => Warehouse, warehouse => warehouse.inboundItems)
+    @ManyToOne(type => Warehouse, warehouse => warehouse.outboundItems)
     @Field(type => Warehouse)
     warehouse: Warehouse;
 
@@ -21,25 +21,21 @@ export class Inbound extends BaseEntity {
 
     @Column({length: 100})
     @Field()
-    receiptNo: string;
+    requestNo: string;
     
-    @Column({length: 100})
+    @Column({nullable: true})
+    @Field({nullable: true})
+    pickerId: number;
+
+    @Column()
     @Field()
-    poNo: string;
+    userId: number;
 
     @Column({type: "text", nullable: true})
     @Field({nullable: true})
     remark: string;
 
-    @Column({nullable: true})
-    @Field()
-    userId: number;
-    
-    @Column({nullable: true})
-    @Field({nullable: true})
-    putawayBy: number;
-
-    @ManyToOne(type => Status, status => status.inboundItems)
+    @ManyToOne(type => Status, status => status.outboundItems)
     @Field(type => Status)
     @JoinColumn({ name: "status_code", referencedColumnName: "code" })
     status: Status;
@@ -48,7 +44,7 @@ export class Inbound extends BaseEntity {
     @Field()
     statusCode: string;
 
-    @OneToMany(type => InboundItem, items => items.inbound)
-    @Field(type => [InboundItem], {nullable: true})
-    items: InboundItem[];
+    @OneToMany(type => OutboundItem, items => items.outbound)
+    @Field(type => [OutboundItem], {nullable: true})
+    items: OutboundItem[];
 }

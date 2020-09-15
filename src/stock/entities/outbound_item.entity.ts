@@ -1,23 +1,24 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, } from 'typeorm';
 import { BaseEntity } from './BaseEntity';
-import { Inbound, WarehouseLocation } from './';
+import { Outbound, WarehouseLocation } from './';
 import { ObjectType, Field } from '@nestjs/graphql';
 
 @Entity()
 @ObjectType()
-export class InboundItem extends BaseEntity {
+export class OutboundItem extends BaseEntity {
     @PrimaryGeneratedColumn()
     @Field()
     id: number;
 
-    @ManyToOne(type => Inbound, inbound => inbound.items)
-    @Field(type => Inbound)
-    inbound: Inbound;
+    @ManyToOne(type => Outbound, outbound => outbound.items)
+    @Field(type => Outbound)
+    outbound: Outbound;
 
     @Column()
-    inboundId: number
+    @Field()
+    outboundId: number
 
-    @ManyToOne(type => WarehouseLocation, locations => locations.inboundItems, {nullable: true})
+    @ManyToOne(type => WarehouseLocation, locations => locations.outbountItems, {nullable: true})
     @Field(type => WarehouseLocation, {nullable: true})
     warehouseLocation: WarehouseLocation;
 
@@ -33,11 +34,4 @@ export class InboundItem extends BaseEntity {
     @Field()
     qty: number;
     
-    @Column()
-    @Field()
-    price: number;
-    
-    @Column()
-    @Field()
-    total: number;
 }

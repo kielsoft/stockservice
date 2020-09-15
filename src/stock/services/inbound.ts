@@ -20,6 +20,7 @@ export class InboundService  {
     ) {}
 
     async create(inbound: InboundCreateInput): Promise<Inbound> {
+        inbound.statusCode = Status.CODE.received;
         let items = inbound.items;
         delete inbound.items;
         return this.repo.save(inbound).then(receipt => {
@@ -68,7 +69,7 @@ export class InboundService  {
             inbound.items.forEach(async item => {
                 const warehouseLocationItem = await this.locationItemRepo.getOne({
                     sku: item.sku,
-                    warehouseId: item.warehouseLocationId,
+                    warehouseLocationId: item.warehouseLocationId,
                 }).catch((error) => {
                     return this.locationItemRepo.create({
                         warehouseLocationId: item.warehouseLocationId,
@@ -96,6 +97,8 @@ export class InboundService  {
     async fetchAll(inbound: InboundFetchInput): Promise<InboundFetchResponseData> {
         let pagination = inbound && inbound.pagination || {limit: 50, page: 1};
         let skip = (pagination.page > 1)? (pagination.page-1) * pagination.limit : 0;
+
+        if(inbound) inbound.pagination = undefined;
         
         let [data, total] = await this.repo.findAndCount({
             where: inbound, 
@@ -106,18 +109,14 @@ export class InboundService  {
             throw new Error("Error fetching GRNs")
         })
 
-        return {
-            data, 
-            count: data.length,
-            limit: pagination.limit,
-            page: pagination.page,
-            pages: Number((total/pagination.limit).toFixed())
-        }
+        return buildPaginationWithData(data, total, pagination as any);
     }
     
     async fetchAllItems(item: InboundItemFetchInput): Promise<InboundItemFetchResponseData> {
         let pagination = item && item.pagination || {limit: 50, page: 1};
         let skip = (pagination.page > 1)? (pagination.page-1) * pagination.limit : 0;
+
+        if(item.pagination) delete item.pagination;
         
         let [data, total] = await this.itemRepo.findAndCount({
             where: item, 

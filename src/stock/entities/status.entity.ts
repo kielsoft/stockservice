@@ -1,6 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany, Index } from 'typeorm';
 import { BaseEntity } from './BaseEntity';
-import { Inbound } from './inbound.entity';
+import { Inbound, Outbound } from './';
 import { ObjectType, Field } from '@nestjs/graphql';
 
 
@@ -38,4 +38,8 @@ export class Status extends BaseEntity {
     @OneToMany(type => Inbound, inbound => inbound.status)
     @Field(type => [Inbound], {nullable: true})
     inboundItems: Inbound[];
+
+    @OneToMany(type => Outbound, outbound => outbound.status)
+    @Field(type => [Outbound], {nullable: true})
+    outboundItems: Outbound[];
 }
