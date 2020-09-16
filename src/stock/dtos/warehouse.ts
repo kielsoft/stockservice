@@ -94,6 +94,12 @@ export class WarehouseLocationItemCreateInput {
 
     @Field()
     sku: string;
+
+    @Field({nullable: true})
+    name?: string;
+    
+    @Field({nullable: true})
+    description?: string;
     
     @Field({defaultValue: 0})
     qty: number;
@@ -109,6 +115,12 @@ export class WarehouseLocationItemUpdateInput {
 
     @Field({nullable: true})
     sku?: string;
+
+    @Field({nullable: true})
+    name?: string;
+    
+    @Field({nullable: true})
+    description?: string;
 
     @Field({ nullable: true })
     qty?: number;

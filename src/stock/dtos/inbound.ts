@@ -93,6 +93,12 @@ export class InboundItemFetchInput {
 export class InboundItemCreateInput {
     @Field()
     sku: string;
+    
+    @Field({nullable: true})
+    name?: string;
+    
+    @Field({nullable: true})
+    description?: string;
 
     @Field()
     qty: number;

@@ -29,6 +29,14 @@ export class InboundItem extends BaseEntity {
     @Field()
     sku: string;
 
+    @Column({length: 255, nullable: true})
+    @Field({nullable: true})
+    name: string;
+
+    @Column({type: 'text', nullable: true})
+    @Field({nullable: true})
+    description: string;
+
     @Column()
     @Field()
     qty: number;

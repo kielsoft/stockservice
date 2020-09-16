@@ -24,6 +24,14 @@ export class WarehouseLocationItem extends BaseEntity {
     @Field()
     sku: string;
 
+    @Column({length: 255, nullable: true})
+    @Field({nullable: true})
+    name: string;
+
+    @Column({type: 'text', nullable: true})
+    @Field({nullable: true})
+    description: string;
+
     @Column({nullable: false})
     @Field()
     qty: number;

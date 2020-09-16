@@ -72,6 +72,8 @@ export class InboundService  {
                     warehouseLocationId: item.warehouseLocationId,
                 }).catch((error) => {
                     return this.locationItemRepo.create({
+                        name: item.name || null,
+                        description: item.description || null,
                         warehouseLocationId: item.warehouseLocationId,
                         sku: item.sku,
                         qty: 0,
