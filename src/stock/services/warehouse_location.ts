@@ -28,8 +28,8 @@ export class WarehouseLocationService  {
     async fetchAll(location: WarehouseLocationFetchInput): Promise<WarehouseLocationFetchResponseData> {
         let pagination = location && location.pagination || {limit: 50, page: 1};
         let skip = (pagination.page > 1)? (pagination.page-1) * pagination.limit : 0;
-
-        if(location) location.pagination = undefined;
+        
+        if(location && location.pagination) delete location.pagination;
         
         let [data, total] = await this.locationRepo.findAndCount({
             where: location, 

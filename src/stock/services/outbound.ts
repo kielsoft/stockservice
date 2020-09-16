@@ -97,7 +97,7 @@ export class OutboundService  {
         let pagination = outbound && outbound.pagination || {limit: 50, page: 1};
         let skip = (pagination.page > 1)? (pagination.page-1) * pagination.limit : 0;
 
-        if(outbound) outbound.pagination = undefined;
+        if(outbound && outbound.pagination) delete outbound.pagination;
         
         let [data, total] = await this.repo.findAndCount({
             where: outbound, 
@@ -121,7 +121,7 @@ export class OutboundService  {
         let pagination = item && item.pagination || {limit: 50, page: 1};
         let skip = (pagination.page > 1)? (pagination.page-1) * pagination.limit : 0;
         
-        if(item.pagination)  delete item.pagination;
+        if(item && item.pagination) delete item.pagination;
 
         let [data, total] = await this.itemRepo.findAndCount({
             where: item, 

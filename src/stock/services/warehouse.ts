@@ -29,7 +29,8 @@ export class WarehouseService  {
         let pagination = warehouse && warehouse.pagination || {limit: 50, page: 1};
         let skip = (pagination.page > 1)? (pagination.page-1) * pagination.limit : 0;
         
-        if(warehouse) warehouse.pagination = undefined;
+        if(warehouse && warehouse.pagination) delete warehouse.pagination;
+        
 
         let [data, total] = await this.warehouseRepo.findAndCount({
             where: warehouse, 
