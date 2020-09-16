@@ -29,13 +29,13 @@ export class InboundResolver {
   }
 
   @Mutation(returns => Inbound)
-  async createGoodsReceipts(@Args("inboundCreateInput") inboundCreateInput: InboundCreateInput, @CurrentUser() userData: IJwtUserData){
+  async createGoodsReceipt(@Args("inboundCreateInput") inboundCreateInput: InboundCreateInput, @CurrentUser() userData: IJwtUserData){
       inboundCreateInput.userId = Number(userData.user_id);
       return await this.inboundService.create(inboundCreateInput);
   }
   
   @Mutation(returns => Inbound)
-  async putAwayGoodsReceipts(@Args("inboundPutAwayInput") inboundPutAwayInput: InboundPutAwayInput, @CurrentUser() userData: IJwtUserData){
+  async putAwayGoodsReceipt(@Args("inboundPutAwayInput") inboundPutAwayInput: InboundPutAwayInput, @CurrentUser() userData: IJwtUserData){
     inboundPutAwayInput.putawayBy = Number(userData.user_id);
       return await this.inboundService.putAway(inboundPutAwayInput);
   }
