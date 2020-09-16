@@ -22,7 +22,7 @@ then
         echo "[ $appPid ] killing StockService app to reinstall npm packages..."  >> ./logs/stock_service.log
         kill -9 $appPid;
         echo "StockService killed."  >> ./logs/stock_service.log
-        appPid=0;
+        appPid=;
     fi
 
     echo "Reloading npm packages..."  >> ./logs/stock_service.log
