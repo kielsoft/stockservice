@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { HttpModule, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 import * as path from 'path';
@@ -9,6 +9,7 @@ import * as resolvers from './resolvers';
 
 @Module({
     imports: [
+        HttpModule,
         TypeOrmModule.forRoot({
             type: 'mariadb',
             host: config.mysql.host,

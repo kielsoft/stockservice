@@ -25,7 +25,7 @@ export class InboundService  {
         delete inbound.items;
         return this.repo.save(inbound).then(receipt => {
             items.map(async inboundItem => await this.saveItem({...inboundItem, inboundId: receipt.id}));
-            return this.getOne(receipt);
+            return this.getOne({id: receipt.id});
         });
     }
 

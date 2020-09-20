@@ -1,5 +1,6 @@
 import { ObjectType, Field } from "@nestjs/graphql";
 
+export * from "./common";
 export * from "./warehouse";
 export * from "./inbound";
 export * from "./outbound";
