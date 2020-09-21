@@ -21,10 +21,7 @@ export class CommonService {
         }).toPromise()
             .then(response => {
                 let data = response.data;
-                if(typeof data == 'string'){
-                    if(String(data).indexOf('c-iprocure.com') == 0){
-                        data = String(data).substr("c-iprocure.com".length) as any;
-                    }
+                if(typeof data == 'string' && data){
                     data = JSON.parse(data as any);
                 }
                 if(data && Object.keys(data).length){
