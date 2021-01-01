@@ -21,21 +21,16 @@ export class CommonService {
         }).toPromise()
             .then(response => {
                 let data = response.data;
-                if(typeof data == 'string' && data){
-                    data = JSON.parse(data as any);
-                }
                 if(data && Object.keys(data).length){
+                    //data.jwt = data.jwt? 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJjLWlwcm9jdXJlLmNvbSIsImF1ZCI6IlRIRV9BVURJRU5DRSIsImlhdCI6MTYwOTQyNzM5NiwibmJmIjoxNjA5NDI3NDA2LCJleHAiOjE2MDk0Mjc0NTYsImRhdGEiOnsidXNlcl9pZCI6IjEiLCJjb250YWN0X25hbWUiOiJTdXBlciBBZG1pbiIsImJyYW5jaF9pZCI6IjQiLCJlbWFpbCI6ImNpYWRtaW5AYy1pbGVhc2luZy5jb20ifX0.j7_xFzJwubROK9H0tzOyo3U7wcv0ruMcz9IvuwqWxeI' : data.jwt;
                     return this.camelCaseObjectMap(data)
                 }
-                return {
-                    message: "Invalid username and password",
-                }
+                throw Error("Invalid username and password");
             })
             .catch(error => {
-                if(error.response && error.response.data) return error.response.data;
-                return {
-                    message: error.message,
-                }
+                console.log("Error: ", error.message, input);
+                throw Error("Invalid username and password");
+                //if(error.response && error.response.data) return error.response.data;
             })
     }
 

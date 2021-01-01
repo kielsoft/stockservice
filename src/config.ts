@@ -10,6 +10,7 @@ export default {
         database: process.env.DATABASE_NAME || 'codemode_stockservice',
     },
     auth: {
-        jwt_secret: process.env.JWT_SECRET_KEY || 'jwt_secret'
+        jwt_secret: process.env.JWT_SECRET_KEY || 'jwt_secret',
+        token_header_key: process.env.TOKEN_HEADER_KEY || 'x-user-token'
     }
 }
