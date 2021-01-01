@@ -28,7 +28,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
 class JwtStrategy extends PassportStrategy(Strategy) {
     constructor() {
         super({
-            jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+            jwtFromRequest: ExtractJwt.fromHeader(config.auth.token_header_key),
             ignoreExpiration: true,
             secretOrKey: config.auth.jwt_secret,
         });
