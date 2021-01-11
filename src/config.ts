@@ -1,5 +1,5 @@
 export default {
-    environment: process.env.NODE_ENV,
+    environment: process.env.APP_ENV,
     appName: 'stockservice',
     appPort: Number(process.env.APP_PORT || 60001),
     mysql: {

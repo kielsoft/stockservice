@@ -32,9 +32,6 @@ export class InboundUpdateInput {
     remark?: string;
 
     @Field({nullable: true})
-    putawayBy?: number;
-
-    @Field({nullable: true})
     statusCode?: string;
 }
 
@@ -80,6 +77,9 @@ export class InboundItemFetchInput {
 
     @Field({nullable: true})
     inboundId?: number;
+
+    @Field({nullable: true})
+    putawayBy?: number;
     
     @Field({nullable: true})
     sku?: string;
@@ -120,6 +120,8 @@ export class InboundItemPutAwayInput {
 
     @Field()
     warehouseLocationId: number;
+
+    putawayBy?: number;
 
 }
 

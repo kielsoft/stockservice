@@ -48,4 +48,8 @@ export class InboundItem extends BaseEntity {
     @Column()
     @Field()
     total: number;
+
+    @Column({nullable: true})
+    @Field({nullable: true})
+    putawayBy?: number;
 }

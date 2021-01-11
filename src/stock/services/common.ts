@@ -1,7 +1,8 @@
 import { camelCase } from 'lodash';
 import { HttpService, Injectable } from '@nestjs/common';
-import { AuthenticationData, LoginInput, PoItemData, PoItemsFetchInput } from '../dtos';
+import { AuthenticationData, LoginInput, PoItemData, PoItemsFetchInput, RequisitionData } from '../dtos';
 import { PoDetailError } from '../../errors';
+import config from '../../config';
 
 
 @Injectable()
@@ -20,9 +21,12 @@ export class CommonService {
             }
         }).toPromise()
             .then(response => {
+                this.pullOutboundItems('557500020180814');
                 let data = response.data;
                 if(data && Object.keys(data).length){
-                    //data.jwt = data.jwt? 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJjLWlwcm9jdXJlLmNvbSIsImF1ZCI6IlRIRV9BVURJRU5DRSIsImlhdCI6MTYwOTQyNzM5NiwibmJmIjoxNjA5NDI3NDA2LCJleHAiOjE2MDk0Mjc0NTYsImRhdGEiOnsidXNlcl9pZCI6IjEiLCJjb250YWN0X25hbWUiOiJTdXBlciBBZG1pbiIsImJyYW5jaF9pZCI6IjQiLCJlbWFpbCI6ImNpYWRtaW5AYy1pbGVhc2luZy5jb20ifX0.j7_xFzJwubROK9H0tzOyo3U7wcv0ruMcz9IvuwqWxeI' : data.jwt;
+                    if(config.environment === 'dev') {
+                        data.jwt = data.jwt? 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJjLWlwcm9jdXJlLmNvbSIsImF1ZCI6IlRIRV9BVURJRU5DRSIsImlhdCI6MTYwOTQyNzM5NiwibmJmIjoxNjA5NDI3NDA2LCJleHAiOjE2MDk0Mjc0NTYsImRhdGEiOnsidXNlcl9pZCI6IjEiLCJjb250YWN0X25hbWUiOiJTdXBlciBBZG1pbiIsImJyYW5jaF9pZCI6IjQiLCJlbWFpbCI6ImNpYWRtaW5AYy1pbGVhc2luZy5jb20ifX0.j7_xFzJwubROK9H0tzOyo3U7wcv0ruMcz9IvuwqWxeI' : data.jwt;
+                    }
                     return this.camelCaseObjectMap(data)
                 }
                 throw Error("Invalid username and password");
@@ -63,6 +67,34 @@ export class CommonService {
             })
             .catch(error => {
                 throw PoDetailError("No approved item found or invalid PO");
+            })
+    }
+
+    pullOutboundItems(requisitionNumber: string): Promise<RequisitionData[]> {
+        return this.httpService.get<RequisitionData[]>(`https://c-iprocure.com/scp/api/quote/req_all.php?id=${requisitionNumber}`).toPromise()
+            .then(response => {
+                let data: RequisitionData[] = response.data && (<any>response.data).records || [];
+                if(Array.isArray(data) && data.length){
+                    data = this.camelCaseObjectMap(data)
+                    
+                    data.forEach((e: RequisitionData) => {
+                        let f: any = e;
+                        e.statusCode = "approved";
+                        e.requestNo = String(f.requistionNumber).trim();
+                        e.sku = String(f.sku).trim();
+                        e.createdAt = new Date(String(f.reqDate).trim());
+                        e.qty = Number(String(f.quantity).trim());
+                        e.reason = String(f.reason).trim();
+                        e.detail = String(f.detail).trim();
+                        e.type = String(f.type).trim();
+                    })
+
+                    return data;
+                }
+                throw new Error("No approved item found or invalid requisition number");
+            })
+            .catch(error => {
+                throw PoDetailError("No approved item found or invalid requisition number");
             })
     }
 
