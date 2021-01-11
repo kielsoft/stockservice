@@ -69,3 +69,30 @@ export class PoItemData {
     statusCode: string;
 }
 
+@ObjectType()
+export class RequisitionData {
+
+    @Field()
+    requestNo: string;
+
+    @Field()
+    createdAt: Date;
+
+    @Field()
+    sku: string;
+
+    @Field()
+    qty: number;
+
+    @Field()
+    reason: string;
+
+    @Field({nullable: true})
+    detail?: string;
+
+    @Field()
+    statusCode: string;
+
+    @Field()
+    type: string;
+}

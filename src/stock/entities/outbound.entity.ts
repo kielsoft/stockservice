@@ -22,10 +22,6 @@ export class Outbound extends BaseEntity {
     @Column({length: 100})
     @Field()
     requestNo: string;
-    
-    @Column({nullable: true})
-    @Field({nullable: true})
-    pickerId: number;
 
     @Column()
     @Field()

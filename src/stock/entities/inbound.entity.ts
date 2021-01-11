@@ -34,10 +34,6 @@ export class Inbound extends BaseEntity {
     @Column({nullable: true})
     @Field()
     userId: number;
-    
-    @Column({nullable: true})
-    @Field({nullable: true})
-    putawayBy: number;
 
     @ManyToOne(type => Status, status => status.inboundItems)
     @Field(type => Status)

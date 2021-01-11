@@ -44,29 +44,34 @@ export class InboundService  {
                 throw new Error(`GRN: ${inbound.id} already put away`);
             }
 
-            if(inbound.items.length != putAwayInput.items.length){
+            if(putAwayInput.items.length > inbound.items.length){
                 throw new Error("Invalid number of items");
             }
 
-            let inputItems = itemArrayToObject<InboundItemPutAwayInput>(putAwayInput.items);
+            let grnItems = itemArrayToObject<InboundItem>(inbound.items);
 
-            for (let i = 0; i < inbound.items.length; i++) {
-                let item = inbound.items[i];
+            for (let i = 0; i < putAwayInput.items.length; i++) {
+                let inPutAwayItem = putAwayInput.items[i];
+                let item: InboundItem = grnItems[inPutAwayItem.sku];
 
-                let inPutAwayItem: InboundItemPutAwayInput = inputItems[item.sku];
-                if(!inPutAwayItem) {
-                    throw new Error("Invalid list of items");
+                if(!item || !item.id) {
+                    throw new Error(`Item with SKU ${inPutAwayItem.sku} does not belong to this GRN`);
                 }
-                else if(inPutAwayItem.qty !== item.qty){
-                    throw new Error(`Qty mismatch for sku: ${item.sku}`);
-                }
-                item.warehouseLocationId = inPutAwayItem.warehouseLocationId;
-                await item.save();
+                else if( item.putawayBy ) {
+                    throw new Error(`SKU ${item.sku} with ${item.qty} qty already putaway to Location ${item.warehouseLocationId}`);
+                } else if(inPutAwayItem.qty !== item.qty){
+                    throw new Error(`Qty mismatch for SKU: ${item.sku}`);
+                } 
             }
-
             
+            for (let i = 0; i < putAwayInput.items.length; i++) {
+                let inPutAwayItem = putAwayInput.items[i];
+                let item: InboundItem = grnItems[inPutAwayItem.sku];
 
-            inbound.items.forEach(async item => {
+                item.warehouseLocationId = inPutAwayItem.warehouseLocationId;
+                item.putawayBy = putAwayInput.putawayBy;
+                await item.save();
+
                 const warehouseLocationItem = await this.locationItemRepo.getOne({
                     sku: item.sku,
                     warehouseLocationId: item.warehouseLocationId,
@@ -79,15 +84,19 @@ export class InboundService  {
                         qty: 0,
                     });
                 })
-                this.locationItemRepo.update({...warehouseLocationItem, qty: (warehouseLocationItem.qty+item.qty)})
-            })
+                await this.locationItemRepo.update({...warehouseLocationItem, qty: (warehouseLocationItem.qty+item.qty)})
+            }
 
-            delete putAwayInput.items;
-            inbound.load(putAwayInput);
-            inbound.statusCode = Status.CODE.completed;
+            if(inbound.items.length && !(inbound.items.filter(i => !i.putawayBy)).length){
+                inbound.statusCode = Status.CODE.completed;
+            }
+
             return inbound.save();
 
         }).catch(error => {
+            if(String(error.code).indexOf('ER_NO_REFERENCED') >= 0){
+                throw InboundPutAwayError("Invalid warehouse ID or SKU, please check and try again");
+            }
             throw InboundPutAwayError(error.message)
         });
     }

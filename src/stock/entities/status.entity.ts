@@ -10,6 +10,7 @@ import { ObjectType, Field } from '@nestjs/graphql';
 export class Status extends BaseEntity {
 
     static readonly CODE = {
+        approved: "approved",
         pending: "pending",
         received: "received",
         completed: "completed",

@@ -30,8 +30,8 @@ export class OutboundPickInput {
 
     pickerId: number;
 
-    @Field(type => [OutboundItemCreateInput])
-    items: OutboundItemCreateInput[];
+    @Field(type => [OutboundItemPickInput])
+    items: OutboundItemPickInput[];
 }
 
 @InputType()
@@ -43,7 +43,7 @@ export class OutboundFetchInput {
     warehouseId?: number;
 
     @Field({nullable: true})
-    requesttNo?: string;
+    requestNo?: string;
 
     @Field(type => PaginationInputData, {nullable: true, defaultValue: {limit: 50, page: 1}})
     pagination?: PaginationInputData;
@@ -70,9 +70,21 @@ export class OutboundItemFetchInput {
 // Outbound Item
 @InputType()
 export class OutboundItemCreateInput {
+
+    @Field()
+    sku: string;
+
+    @Field()
+    qty: number;
+    
+}
+
+@InputType()
+export class OutboundItemPickInput {
+
     @Field()
     warehouseLocationId: number;
-    
+
     @Field()
     sku: string;
 

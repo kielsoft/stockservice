@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Outbound, OutboundItem, Status } from '../entities';
+import { Outbound, OutboundItem, Status, WarehouseLocationItem } from '../entities';
 import { OutboundCreateInput, OutboundItemCreateInput, OutboundFetchInput, 
-    OutboundFetchResponseData, OutboundItemFetchInput, OutboundItemFetchResponseData, OutboundPickInput } from '../dtos';
+    OutboundFetchResponseData, OutboundItemFetchInput, OutboundItemFetchResponseData, OutboundPickInput, RequisitionData } from '../dtos';
 import { OutboundPickError } from '../../errors';
 import { WarehouseLocationItemService } from './warehouse_location_item';
 import { buildPaginationWithData, itemArrayToObject } from './base';
@@ -19,20 +19,20 @@ export class OutboundService  {
     ) {}
 
     async create(outbound: OutboundCreateInput): Promise<Outbound> {
-        outbound.statusCode = Status.CODE.received;
+        outbound.statusCode = Status.CODE.approved;
         let items = outbound.items;
         delete outbound.items;
 
         //verify quantity
-        for (let index = 0; index < items.length; index++) {
-            const item = items[index];
-            await this.locationItemRepo.getOne({warehouseLocationId: item.warehouseLocationId, sku: item.sku}).then(warehouseLocationItem => {
-                if(warehouseLocationItem.qty < item.qty) throw OutboundPickError("Insufficient quantity"); 
-            }).catch(error => {
-                if(error.name == 'EntityNotFound')throw OutboundPickError(`Error scan qty for SKU: ${item.sku} in locationId: ${item.warehouseLocationId}`);
-                throw error;
-            });
-        }
+        // for (let index = 0; index < items.length; index++) {
+        //     const item = items[index];
+        //     await this.locationItemRepo.getOne({warehouseLocationId: item.warehouseLocationId, sku: item.sku}).then(warehouseLocationItem => {
+        //         if(warehouseLocationItem.qty < item.qty) throw OutboundPickError("Insufficient quantity"); 
+        //     }).catch(error => {
+        //         if(error.name == 'EntityNotFound')throw OutboundPickError(`Error scan qty for SKU: ${item.sku} in locationId: ${item.warehouseLocationId}`);
+        //         throw error;
+        //     });
+        // }
 
         return this.repo.save(outbound).then(async receipt => {
             await items.map(async outboundItem => await this.saveItem({...outboundItem, outboundId: receipt.id}));
@@ -53,38 +53,73 @@ export class OutboundService  {
                 throw new Error(`Outbound: ${outbound.id} already picked and release`);
             }
 
-            if(outbound.items.length != input.items.length){
+            if(input.items.length > outbound.items.length){
                 throw new Error("Invalid number of items");
             }
 
-            let inputItems = itemArrayToObject<OutboundItemCreateInput>(input.items);
+            let grnItems = itemArrayToObject<OutboundItem>(outbound.items);
+            let inputWarehouseLocationItems: {[key: string]: WarehouseLocationItem } = {}; 
+            for (let i = 0; i < input.items.length; i++) {
+                let inputItem = input.items[i];
+                let item: OutboundItem = grnItems[inputItem.sku];
 
-            for (let i = 0; i < outbound.items.length; i++) {
-                let item = outbound.items[i];
-
-                let pickItem: OutboundItemCreateInput = inputItems[item.sku];
-                if(!pickItem) {
-                    throw new Error("Invalid list of items");
+                if(!item || !item.id) {
+                    throw new Error(`Item with SKU ${inputItem.sku} does not belong to this Request`);
                 }
-                else if(pickItem.qty !== item.qty){
-                    throw new Error(`Qty mismatch for sku: ${item.sku}`);
+                else if( item.pickerId ) {
+                    throw new Error(`SKU ${item.sku} with ${item.qty} qty already picked from Location ${inputItem.warehouseLocationId}`);
+                } else if(inputItem.qty !== item.qty){
+                    throw new Error(`Qty mismatch for SKU: ${item.sku}`);
                 }
-            }
 
-            outbound.items.forEach(async item => {
                 const warehouseLocationItem = await this.locationItemRepo.getOne({
                     sku: item.sku,
-                    warehouseLocationId: item.warehouseLocationId,
+                    warehouseLocationId: inputItem.warehouseLocationId,
                 })
-                this.locationItemRepo.update({...warehouseLocationItem, qty: (warehouseLocationItem.qty-item.qty)});
-            })
+                // ***************************************** 
+                // Remove this later
+                // ***************************************** 
+                .catch((error) => {
+                    return this.locationItemRepo.create({
+                        name: `Product-${item.sku}`,
+                        description: outbound.remark,
+                        warehouseLocationId: inputItem.warehouseLocationId,
+                        sku: item.sku,
+                        qty: item.qty * 3,
+                    });
+                });
 
-            delete input.items;
-            outbound.load(input);
-            outbound.statusCode = Status.CODE.completed;
+                if(!warehouseLocationItem || !warehouseLocationItem.id) {
+                    throw new Error(`Item with SKU ${inputItem.sku} is not available in Location: ${inputItem.warehouseLocationId}`);
+                } else if (warehouseLocationItem.qty < item.qty){
+                    throw new Error(`Item with SKU ${inputItem.sku} has insufficient qty in Location: ${inputItem.warehouseLocationId}`);
+                }
+
+                inputWarehouseLocationItems[item.sku] = warehouseLocationItem;
+            }
+
+            for (let i = 0; i < input.items.length; i++) {
+                let inputItem = input.items[i];
+                let item: OutboundItem = grnItems[inputItem.sku];
+
+                item.pickerId = input.pickerId;
+                item.warehouseLocationId = inputItem.warehouseLocationId;
+                item.save();
+                
+                const warehouseLocationItem = inputWarehouseLocationItems[item.sku];
+                this.locationItemRepo.update({...warehouseLocationItem, qty: (warehouseLocationItem.qty-item.qty)});
+            }
+
+            if(outbound.items.length && !(outbound.items.filter(i => !i.pickerId)).length){
+                outbound.statusCode = Status.CODE.completed;
+            }
+
             return outbound.save();
 
         }).catch(error => {
+            if(String(error.code).indexOf('ER_NO_REFERENCED') >= 0){
+                throw OutboundPickError("Invalid warehouse ID or SKU, please check and try again");
+            }
             throw OutboundPickError(error.message)
         });
     }
@@ -108,13 +143,7 @@ export class OutboundService  {
             throw new Error("Error fetching Outbounds")
         })
 
-        return {
-            data, 
-            count: data.length,
-            limit: pagination.limit,
-            page: pagination.page,
-            pages: Number((total/pagination.limit).toFixed())
-        }
+        return buildPaginationWithData(data, total, pagination as any);
     }
     
     async fetchAllItems(item: OutboundItemFetchInput): Promise<OutboundItemFetchResponseData> {
@@ -133,6 +162,32 @@ export class OutboundService  {
         })
 
         return buildPaginationWithData(data, total, pagination as any);
+    }
+
+    generateRequisitionRequest(data: RequisitionData[], userId: number): Promise<OutboundFetchResponseData> {
+        const firstData = data[0];
+        if(!firstData?.requestNo) {
+            throw OutboundPickError('Invalid Requisition Number');
+        }
+
+        const request = {
+            warehouseId: 1,
+            requestNo: firstData.requestNo,
+            remark: `${firstData.reason}. ${firstData.detail}`,
+            userId,
+            statusCode: Status.CODE.approved,
+            items: [],
+        }
+
+        data.forEach(i => {
+            request.items.push({
+                sku: i.sku,
+                qty: i.qty
+            });
+        });
+
+        return this.create(request)
+        .then(outbound => this.fetchAll({requestNo: firstData.requestNo}));
     }
     
 }

@@ -26,6 +26,10 @@ export class OutboundItem extends BaseEntity {
     @Field({nullable: true})
     warehouseLocationId: number
 
+    @Column({nullable: true})
+    @Field({nullable: true})
+    pickerId: number;
+
     @Column({length: 100})
     @Field()
     sku: string;
