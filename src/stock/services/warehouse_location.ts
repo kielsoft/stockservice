@@ -21,8 +21,11 @@ export class WarehouseLocationService  {
         return this.locationRepo.save(location).then(location => this.getOne(location))
     }
 
-    getOne(location: WarehouseLocationFetchInput): Promise<WarehouseLocation> {
-        return this.locationRepo.findOneOrFail(location, {relations: ["warehouse", "items"]});
+    getOne(location: WarehouseLocationFetchInput, withItems = true): Promise<WarehouseLocation> {
+        const relations = ["warehouse"];
+        if(withItems) relations.push("items");
+
+        return this.locationRepo.findOneOrFail(location, {relations});
     }
 
     async fetchAll(location: WarehouseLocationFetchInput): Promise<WarehouseLocationFetchResponseData> {
@@ -37,7 +40,6 @@ export class WarehouseLocationService  {
             take: pagination.limit,
             skip: skip
         }).catch(error => {
-            console.log(error.message);
             throw new Error("Error fetching warehouse locations")
         })
 

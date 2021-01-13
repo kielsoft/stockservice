@@ -13,7 +13,7 @@ export class WarehouseLocationItemResolver {
   ) {}
 
   @Query(returns => WarehouseLocationItemFetchResponseData)
-  async warehouseLocationItems(@Args("warehouseLocationItemFetchInput", {nullable: true}) warehouseLocationItemFetchInput?: WarehouseLocationItemFetchInput) {
+  async warehouseLocationItems(@Args("request", {nullable: true}) warehouseLocationItemFetchInput?: WarehouseLocationItemFetchInput) {
       return this.warehouseLocationItemService.fetchAll(warehouseLocationItemFetchInput);
   }
 
@@ -23,12 +23,12 @@ export class WarehouseLocationItemResolver {
   }
 
   @Mutation(returns => WarehouseLocationItem)
-  async addWarehouseLocationItem(@Args("warehouseLocationItemCreateInput") warehouseLocationItemCreateInput: WarehouseLocationItemCreateInput){
+  async addWarehouseLocationItem(@Args("request") warehouseLocationItemCreateInput: WarehouseLocationItemCreateInput){
       return await this.warehouseLocationItemService.create(warehouseLocationItemCreateInput);
   }
   
   @Mutation(returns => WarehouseLocationItem)
-  async updateWarehouseLocationItem(@Args("warehouseLocationItemUpdateInput", {}) warehouseLocationItemUpdateInput: WarehouseLocationItemUpdateInput){
+  async updateWarehouseLocationItem(@Args("request", {}) warehouseLocationItemUpdateInput: WarehouseLocationItemUpdateInput){
       return await this.warehouseLocationItemService.update(warehouseLocationItemUpdateInput);
   }
 
