@@ -2,6 +2,7 @@ import { Entity, PrimaryGeneratedColumn, Column, OneToMany, Index } from 'typeor
 import { BaseEntity } from './BaseEntity';
 import { Inbound, Outbound } from './';
 import { ObjectType, Field } from '@nestjs/graphql';
+import { StockCount } from './stock_count.entity';
 
 
 @Entity()
@@ -14,6 +15,7 @@ export class Status extends BaseEntity {
         pending: "pending",
         received: "received",
         completed: "completed",
+        cancelled: "cancelled",
     }
 
     @PrimaryGeneratedColumn()
@@ -43,4 +45,8 @@ export class Status extends BaseEntity {
     @OneToMany(type => Outbound, outbound => outbound.status)
     @Field(type => [Outbound], {nullable: true})
     outboundItems: Outbound[];
+
+    @OneToMany(type => StockCount, stockCount => stockCount.status)
+    @Field(type => [Outbound], {nullable: true})
+    stockCounts: Outbound[];
 }

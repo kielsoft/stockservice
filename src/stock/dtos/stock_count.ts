@@ -1,9 +1,12 @@
 import { Field, Int, InputType, ObjectType } from '@nestjs/graphql';
 import { PaginationResponseData, PaginationInputData } from './base';
-import { StockCount } from '../entities';
+import { StockCount, WarehouseLocation } from '../entities';
 
 @InputType()
 export class StockCountCreateInput {
+    @Field()
+    referenceId: string
+    
     @Field()
     warehouseLocationId: number
 
@@ -13,17 +16,35 @@ export class StockCountCreateInput {
     @Field()
     qty: number;
 
-    @Field({nullable: true})
     remark: string;
 
     warehouseSkuQty: number;
+
+    statusCode: string;
+
     userId: number;
 }
 
 @InputType()
-export class StockCountDeleteInput {
+export class StockCountGetInput {
     @Field(type => Int)
     id: number;
+
+    userId?: number;
+}
+
+@InputType()
+export class StockCountCancelInput extends StockCountGetInput { }
+
+@InputType()
+export class StockCountApprovalInput {
+    @Field(type => Int)
+    id: number;
+
+    @Field()
+    approvedQty: number;
+
+    userId: number;
 }
 
 @InputType()
@@ -32,15 +53,21 @@ export class StockCountFetchInput {
     id?: number;
 
     @Field({nullable: true})
-    warehouseId?: number;
+    referenceId?: string;
+
+    @Field({nullable: true})
+    warehouseLocationId?: number;
 
     @Field({nullable: true})
     sku?: string;
 
     @Field({nullable: true})
     userId?: number;
+    
+    @Field({nullable: true})
+    statusCode?: string;
 
-    @Field(type => PaginationInputData, {nullable: true, defaultValue: {limit: 50, page: 1}})
+    @Field(type => PaginationInputData, {nullable: true, defaultValue: {limit: 100, page: 1}})
     pagination?: PaginationInputData;
 }
 
@@ -48,6 +75,10 @@ export class StockCountFetchInput {
 
 @ObjectType()
 export class StockCountFetchResponseData extends PaginationResponseData {
+
+    @Field({nullable: true})
+    warehouseLocation?: WarehouseLocation;
+
     @Field(type => [StockCount], {nullable: true})
     data: StockCount[];
 }
