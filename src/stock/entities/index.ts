@@ -8,3 +8,4 @@ export * from './warehouse_location_item.entity';
 export * from './outbound.entity';
 export * from './outbound_item.entity';
 export * from './stock_transfer.entity';
+export * from './item.entity';
