@@ -21,7 +21,7 @@ import * as resolvers from './resolvers';
             namingStrategy: new SnakeNamingStrategy(),
             synchronize: true,
             debug: false,
-            logging: false,
+            logging: true,
         }),
         TypeOrmModule.forFeature([...(<any>Object).keys(entities).map(k => entities[k])]),
     ],

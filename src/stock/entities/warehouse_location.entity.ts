@@ -36,10 +36,6 @@ export class WarehouseLocation extends BaseEntity {
     @OneToMany(type => StockTransfer, st => st.fromWarehouseLocation, {nullable: true})
     @Field(type => [StockTransfer], {nullable: true})
     transferredOutItems?: StockTransfer[];
-    
-    @OneToMany(type => StockTransfer, st => st.toWarehouseLocation, {nullable: true})
-    @Field(type => [StockTransfer], {nullable: true})
-    transferredInItems?: StockTransfer[];
 
     @OneToMany(type => StockCount, cc => cc.warehouseLocation)
     @Field(type => [StockCount], {nullable: true})

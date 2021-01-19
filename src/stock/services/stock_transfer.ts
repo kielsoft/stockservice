@@ -2,9 +2,12 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Status, StockTransfer, WarehouseLocationItem } from '../entities';
-import { OK, StockTransferGetInput, StockTransferCreateInput, StockTransferReceiveInput, StockTransferCancelInput, StockTransferFetchInput, StockTransferFetchResponseData } from '../dtos';
+import { OK, StockTransferGetInput, StockTransferCreateInput, StockTransferReceiveInput, StockTransferCancelInput, StockTransferFetchInput, StockTransferFetchResponseData, StockTransferData } from '../dtos';
 import { buildPaginationWithData } from './base';
 import { StockTransferError } from '../../errors';
+import config from 'src/config';
+import { WarehouseService } from './warehouse';
+import { WarehouseLocationService } from './warehouse_location';
 
 
 @Injectable()
@@ -13,6 +16,8 @@ export class StockTransferService  {
     constructor(
         @InjectRepository(StockTransfer) private readonly repo: Repository<StockTransfer>,
         @InjectRepository(WarehouseLocationItem) private readonly locationItemrepo: Repository<WarehouseLocationItem>,
+        private readonly warehouseService: WarehouseService,
+        private readonly warehouseLocationService: WarehouseLocationService,
     ) {}
 
     async createItems(items: StockTransferCreateInput[]): Promise<StockTransfer[]> {
@@ -20,20 +25,34 @@ export class StockTransferService  {
         const newItems: StockTransfer[] = []
 
         await Promise.all(items.map(async item => {
-            await this.locationItemrepo.findOneOrFail({
+            await this.locationItemrepo.findOne({
                 sku: item.sku,
                 warehouseLocationId: item.fromWarehouseLocationId,
             }).then(async locationItem => {
+
+                if(!locationItem || !locationItem.id){
+                    if(config.commom.avoid_no_product_or_qty_error){
+                        const i = new WarehouseLocationItem();
+                        i.load({
+                            warehouseLocationId: item.fromWarehouseLocationId,
+                            sku: item.sku, 
+                            qty: item.qty,
+                            name: `Product-${item.sku}`,
+                            description: item.remark || "Create from stock-transfer",
+                        });
+                        locationItem = await this.locationItemrepo.save(i);
+                    } else {
+                        throw StockTransferError(`SKU: ${item.sku} not available in WarehouseLocation ID: ${item.fromWarehouseLocationId}`);
+                    }
+                }
+                
 
                 if(locationItem.qty < item.qty) 
                 throw StockTransferError(`SKU: ${item.sku} has only ${locationItem.qty} but ${item.qty} request`);
 
                 item.locationItem = locationItem;
                 return item;
-            }).catch(error => {
-                if(error.code = 'EntityNotFound') throw StockTransferError(`SKU: ${item.sku} not available in WarehouseLocation ID: ${item.fromWarehouseLocationId}`);
-                throw error;
-            });
+            })
         }));
 
         await Promise.all(items.map(async item => {
@@ -80,7 +99,7 @@ export class StockTransferService  {
         await Promise.all(items.map(async item => {
             const dbItem = await this.repo.findOneOrFail({
                 sku: item.sku,
-                toWarehouseLocationId: item.receivingWarehouseLocationId,
+                toWarehouseId: item.receivingWarehouseId,
                 requestNo: item.requestNo,
                 statusCode: Status.CODE.pending,
             }).then(async i => i)
@@ -91,14 +110,14 @@ export class StockTransferService  {
 
             await this.locationItemrepo.findOneOrFail({
                 sku: dbItem.sku,
-                warehouseLocationId: dbItem.toWarehouseLocationId,
+                warehouseLocationId: item.receivingWarehouseLocationId,
             }).then(async locationItem => {
                 (dbItem as any).locationItem = locationItem;
             }).catch(async error => {
                 if(error.code = 'EntityNotFound'){
                     const i = new WarehouseLocationItem();
                     i.load({
-                        warehouseLocationId: dbItem.toWarehouseLocationId,
+                        warehouseLocationId: item.receivingWarehouseLocationId,
                         sku: dbItem.sku, 
                         qty: 0,
                         name: `Product-${dbItem.sku}`,
@@ -144,7 +163,7 @@ export class StockTransferService  {
     }
 
     getOne(item: StockTransferGetInput): Promise<StockTransfer> {
-        return this.repo.findOneOrFail(item, {relations: ["fromWarehouseLocation", "fromWarehouseLocation.warehouse", "toWarehouseLocation", "toWarehouseLocation.warehouse"]});
+        return this.repo.findOneOrFail(item, {relations: ["fromWarehouseLocation", "fromWarehouseLocation.warehouse", "toWarehouse"]});
     }
     
     async fetchAll(item: StockTransferFetchInput): Promise<StockTransferFetchResponseData> {
@@ -155,7 +174,7 @@ export class StockTransferService  {
         
         let [data, total] = await this.repo.findAndCount({
             where: item, 
-            relations: ["fromWarehouseLocation", "fromWarehouseLocation.warehouse", "toWarehouseLocation", "toWarehouseLocation.warehouse"],
+            relations: ["fromWarehouseLocation", "fromWarehouseLocation.warehouse", "toWarehouse"],
             take: pagination.limit,
             skip: skip
         }).catch(error => {
@@ -163,5 +182,67 @@ export class StockTransferService  {
         })
 
         return buildPaginationWithData(data, total, pagination as any);
+    }
+
+    async generateRequisitionRequest(data: StockTransferData[]): Promise<StockTransferFetchResponseData> {
+        const firstData = data[0];
+        if(!firstData?.requestNo) {
+            throw StockTransferError('Invalid Transfer Requisition Number');
+        }
+
+        const request = []
+
+        for (let index = 0; index < data.length; index++) {
+            const i = data[index];
+            
+            const fromWarehouseLocation = await this.warehouseService.getOne({id: i.fromWarehouseId}).then(w => {
+                if(w.name !== i.fromWarehouseName){
+                    w.name = i.fromWarehouseName;
+                    w.save().catch(e => {});
+                }
+
+                if(w.locations && w.locations.length){
+                    return w.locations[0];
+                }
+                
+                return this.warehouseLocationService.create({
+                    warehouseId: w.id,
+                    name: `${w.name} - Main Loc`
+                });
+            }).catch(error => {
+                return this.warehouseService.create({
+                    id: i.fromWarehouseId,
+                    name: i.fromWarehouseName,
+                    address: `Address to ${i.fromWarehouseName}`,
+                } as any).then(w => {
+                    return w.locations[0];
+                });
+            });
+
+            const toWarehouse = await this.warehouseService.getOne({id: i.toWarehouseId}).then(async w => {
+                if(!w.locations && !w.locations.length){
+                    await  this.warehouseLocationService.create({
+                        warehouseId: w.id,
+                        name: `${w.name} - Main Loc`
+                    });
+                }
+
+                return w
+            }).catch(error => {
+                return this.warehouseService.create({
+                    id: i.toWarehouseId,
+                    name: i.toWarehouseName,
+                    address: `Address to ${i.toWarehouseName}`,
+                } as any);
+            });
+
+            i.fromWarehouseLocationId = fromWarehouseLocation.id;
+            (i as any).transferredById = 1;
+
+            request.push(i);
+        };
+
+        return this.createItems(request)
+        .then(outbound => this.fetchAll({requestNo: firstData.requestNo}));
     }
 }

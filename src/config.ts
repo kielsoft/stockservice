@@ -12,5 +12,8 @@ export default {
     auth: {
         jwt_secret: process.env.JWT_SECRET_KEY || 'jwt_secret',
         token_header_key: process.env.TOKEN_HEADER_KEY || 'x-user-token'
+    },
+    commom: {
+        avoid_no_product_or_qty_error: (typeof process.env.AVAOID_NO_PRODUCT_OR_QTY_ERROR !== 'undefined')? !!Number(process.env.AVAOID_NO_PRODUCT_OR_QTY_ERROR) : true
     }
 }

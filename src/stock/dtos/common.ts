@@ -32,7 +32,7 @@ export class AuthenticationData {
     contactName?: string;
 
     @Field({nullable: true})
-    branchId?: 4;
+    branchId?: number;
     
     @Field({nullable: true})
     email?: string;
@@ -95,4 +95,39 @@ export class RequisitionData {
 
     @Field()
     type: string;
+}
+
+@ObjectType()
+export class StockTransferData {
+
+    @Field()
+    requestNo: string;
+
+    @Field()
+    createdAt: Date;
+
+    @Field()
+    sku: string;
+
+    @Field()
+    qty: number;
+    
+    @Field()
+    fromWarehouseId: number;
+    
+    @Field()
+    fromWarehouseLocationId: number;
+    
+    @Field()
+    fromWarehouseName: string;
+
+    @Field()
+    toWarehouseId: number;
+    
+    @Field()
+    toWarehouseName: string;
+
+    @Field()
+    reason: string;
+
 }
