@@ -3,6 +3,7 @@ import { BaseEntity } from './BaseEntity';
 import { Inbound, Outbound } from './';
 import { ObjectType, Field } from '@nestjs/graphql';
 import { StockCount } from './stock_count.entity';
+import { StockTransfer } from './stock_transfer.entity';
 
 
 @Entity()
@@ -49,4 +50,8 @@ export class Status extends BaseEntity {
     @OneToMany(type => StockCount, stockCount => stockCount.status)
     @Field(type => [Outbound], {nullable: true})
     stockCounts: Outbound[];
+   
+    @OneToMany(type => StockTransfer, st => st.status)
+    @Field(type => [StockTransfer], {nullable: true})
+    transferredItems: StockTransfer[];
 }

@@ -1,6 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToOne, JoinColumn, Index, } from 'typeorm';
 import { BaseEntity } from './BaseEntity';
-import { Warehouse, Status, OutboundItem } from './';
+import { Warehouse, Status, OutboundItem } from '.';
 import { ObjectType, Field } from '@nestjs/graphql';
 
 @Entity()

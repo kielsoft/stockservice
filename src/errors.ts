@@ -20,4 +20,5 @@ const createError = (name: string, initData: {[key: string]: any} = {}) => {
 export const InboundPutAwayError = createError('InboundPutAwayError', {code: 'INBOUND_PUTAWAY_ERROR'});
 export const OutboundPickError = createError('OutboundPickError', {code: 'OUTBOUND_PICK_ERROR'});
 export const PoDetailError = createError('PoDetailError', {code: 'PO_DETAIL_ERROR'});
+export const StockTransferError = createError('StockTransferError', {code: 'STOCK_TRANSFER_ERROR'});
 // export const InvalidItemsCountError = createError('InvalidItemsCountError', {code: 'INVALID_ITEMS_COUNT_ERROR'});
