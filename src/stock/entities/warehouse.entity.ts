@@ -2,6 +2,7 @@ import { Entity, PrimaryGeneratedColumn, Column, OneToMany, Index, } from 'typeo
 import { BaseEntity } from './BaseEntity';
 import { WarehouseLocation, Inbound, Outbound } from './';
 import { ObjectType, Field, Int } from '@nestjs/graphql';
+import { StockTransfer } from './stock_transfer.entity';
 
 @Entity()
 @Index('UNIQ_warehouse_name_address', ["name", 'address'], { unique: true})

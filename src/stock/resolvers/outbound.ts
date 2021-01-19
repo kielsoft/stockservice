@@ -3,7 +3,7 @@ import { Resolver, Query, Args, Mutation } from "@nestjs/graphql";
 import { UseGuards } from "@nestjs/common";
 import { JwtAuthGuard, IJwtUserData, CurrentUser } from "../../auth.module";
 import { CommonService, OutboundService } from "../services";
-import { OutboundCreateInput, OutboundFetchInput, OutboundItemFetchInput, OutboundPickInput, OutboundFetchResponseData } from "../dtos";
+import { OutboundCreateInput, OutboundFetchInput, OutboundItemFetchInput, OutboundPickInput, OutboundFetchResponseData, OutboundItemFetchResponseData } from "../dtos";
 import { Outbound } from "../entities";
 
 @Resolver(of => Outbound)
@@ -28,7 +28,7 @@ export class OutboundResolver {
       return data;
   }
   
-  @Query(returns => OutboundFetchResponseData)
+  @Query(returns => OutboundItemFetchResponseData)
   async goodsReleaseItems(@Args("outboundItemFetchInput", {nullable: true}) outboundItemFetchInput?: OutboundItemFetchInput) {
       return this.outboundService.fetchAllItems(outboundItemFetchInput);
   }
