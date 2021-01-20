@@ -35,4 +35,8 @@ export class Warehouse extends BaseEntity {
     @OneToMany(type => Outbound, outbound => outbound.warehouse, {nullable: true})
     @Field(type => [Outbound], {nullable: true})
     outboundItems?: Outbound[];
+
+    @OneToMany(type => StockTransfer, st => st.toWarehouse, {nullable: true})
+    @Field(type => [StockTransfer], {nullable: true})
+    transferredInItems?: StockTransfer[];
 }

@@ -1,8 +1,9 @@
 import { camelCase } from 'lodash';
 import { HttpService, Injectable } from '@nestjs/common';
-import { AuthenticationData, LoginInput, PoItemData, PoItemsFetchInput, RequisitionData } from '../dtos';
+import { AuthenticationData, LoginInput, PoItemData, PoItemsFetchInput, RequisitionData, StockTransferData } from '../dtos';
 import { PoDetailError } from '../../errors';
 import config from '../../config';
+import { WarehouseService } from './warehouse';
 
 
 @Injectable()
@@ -10,6 +11,7 @@ export class CommonService {
 
     constructor(
         private httpService: HttpService,
+        private readonly warehouseService: WarehouseService,
     ) { }
 
     login(input: LoginInput): Promise<AuthenticationData> {
@@ -20,14 +22,22 @@ export class CommonService {
                 "Content-Type": "application/json",
             }
         }).toPromise()
-            .then(response => {
-                this.pullOutboundItems('557500020180814');
+            .then(async response => {
                 let data = response.data;
                 if(data && Object.keys(data).length){
                     if(config.environment === 'dev') {
                         data.jwt = data.jwt? 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJjLWlwcm9jdXJlLmNvbSIsImF1ZCI6IlRIRV9BVURJRU5DRSIsImlhdCI6MTYwOTQyNzM5NiwibmJmIjoxNjA5NDI3NDA2LCJleHAiOjE2MDk0Mjc0NTYsImRhdGEiOnsidXNlcl9pZCI6IjEiLCJjb250YWN0X25hbWUiOiJTdXBlciBBZG1pbiIsImJyYW5jaF9pZCI6IjQiLCJlbWFpbCI6ImNpYWRtaW5AYy1pbGVhc2luZy5jb20ifX0.j7_xFzJwubROK9H0tzOyo3U7wcv0ruMcz9IvuwqWxeI' : data.jwt;
                     }
-                    return this.camelCaseObjectMap(data)
+                    const userData = this.camelCaseObjectMap(data)
+                    await this.warehouseService.getOne({id: userData.branchId}).catch(error => {
+                        return this.warehouseService.create({
+                            id: userData.branchId,
+                            name:  `Warehouse - ${userData.branchId}`,
+                            address: `Address to Warehouse - ${userData.branchId}`,
+                        } as any);
+                    });
+
+                    return userData;
                 }
                 throw Error("Invalid username and password");
             })
@@ -88,6 +98,35 @@ export class CommonService {
                         e.detail = String(f.detail).trim();
                         e.type = String(f.type).trim();
                     })
+
+                    return data;
+                }
+                throw new Error("No approved item found or invalid requisition number");
+            })
+            .catch(error => {
+                throw PoDetailError("No approved item found or invalid requisition number");
+            })
+    }
+    
+    pullStockTransferItems(requisitionNumber: string): Promise<StockTransferData[]> {
+        return this.httpService.get<StockTransferData[]>(`https://c-iprocure.com/scp/api/quote/tran_all.php?id=${requisitionNumber}`).toPromise()
+            .then(response => {
+                let data: StockTransferData[] = response.data && (<any>response.data).records || [];
+                if(Array.isArray(data) && data.length){
+                    data = this.camelCaseObjectMap(data)
+                    
+                    data.forEach((e: StockTransferData) => {
+                        let f: any = e;
+                        e.requestNo = String(f.requistionNumber).trim();
+                        e.sku = String(f.sku).trim();
+                        e.createdAt = new Date(String(f.reqDate).trim());
+                        e.qty = Number(String(f.quantity).trim());
+                        e.reason = String(f.reason).trim();
+                        e.fromWarehouseId = Number(String(f.branchFromId).trim());
+                        e.fromWarehouseName = String(f.branchFrom).trim();
+                        e.toWarehouseId = Number(String(f.branchToId).trim());
+                        e.toWarehouseName = String(f.branchTo).trim();
+                    });
 
                     return data;
                 }

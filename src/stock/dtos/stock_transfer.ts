@@ -1,6 +1,6 @@
 import { Field, Int, InputType, ObjectType } from '@nestjs/graphql';
 import { PaginationResponseData, PaginationInputData } from './base';
-import { StockTransfer, WarehouseLocation, WarehouseLocationItem } from '../entities';
+import { StockTransfer, Warehouse, WarehouseLocationItem } from '../entities';
 
 @InputType()
 export class StockTransferCreateInput {
@@ -11,7 +11,7 @@ export class StockTransferCreateInput {
     fromWarehouseLocationId: number
 
     @Field({nullable: true})
-    toWarehouseLocationId: number
+    toWarehouseId: number
 
     @Field({nullable: true})
     remark?: string;
@@ -48,6 +48,9 @@ export class StockTransferCancelInput {
 @InputType()
 export class StockTransferReceiveInput {
     @Field()
+    receivingWarehouseId: number;
+    
+    @Field()
     receivingWarehouseLocationId: number;
 
     @Field()
@@ -80,7 +83,7 @@ export class StockTransferFetchInput {
     fromWarehouseLocationId?: number;
     
     @Field({nullable: true})
-    toWarehouseLocationId?: number;
+    toWarehouseId?: number;
 
     @Field({nullable: true})
     sku?: string;
@@ -104,7 +107,7 @@ export class StockTransferFetchInput {
 export class StockTransferFetchResponseData extends PaginationResponseData {
 
     @Field({nullable: true})
-    warehouseLocation?: WarehouseLocation;
+    warehouse?: Warehouse;
     
     @Field(type => [StockTransfer], {nullable: true})
     data: StockTransfer[];

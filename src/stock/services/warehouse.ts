@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { Warehouse } from '../entities';
 import { WarehouseCreateInput, WarehouseUpdateInput, WarehouseFetchInput, WarehouseFetchResponseData } from '../dtos';
 import { buildPaginationWithData } from './base';
+import { WarehouseLocationService } from './warehouse_location';
 
 
 @Injectable()
@@ -11,10 +12,16 @@ export class WarehouseService  {
 
     constructor(
         @InjectRepository(Warehouse) private readonly warehouseRepo: Repository<Warehouse>,
+        private readonly warehouseLocationService: WarehouseLocationService,
     ) {}
 
     create(warehouse: WarehouseCreateInput): Promise<Warehouse> {
-        return this.warehouseRepo.save(warehouse)
+        return this.warehouseRepo.save(warehouse).then(warehouse => {
+            return this.warehouseLocationService.create({
+                warehouseId: warehouse.id,
+                name: `${warehouse.name} - Main Loc`,
+            }).then(wl => this.getOne({id: wl.warehouseId}));
+        })
     }
     
     update(warehouse: WarehouseUpdateInput): Promise<Warehouse> {

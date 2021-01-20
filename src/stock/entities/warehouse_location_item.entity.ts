@@ -1,7 +1,8 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToOne, Index, } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToOne, Index, JoinColumn, } from 'typeorm';
 import { BaseEntity } from './BaseEntity';
-import { WarehouseLocation } from './';
+import { WarehouseLocation } from '.';
 import { ObjectType, Field } from '@nestjs/graphql';
+import { Item } from './item.entity';
 
 
 @Entity()
@@ -35,4 +36,10 @@ export class WarehouseLocationItem extends BaseEntity {
     @Column({nullable: false})
     @Field()
     qty: number;
+
+    // @ManyToOne(type => Item, i => i.warehouseLocationItems, {nullable: true})
+    // @Field(type => Item, {nullable: true})
+    // @JoinColumn({ name: "sku", referencedColumnName: "sku" })
+    // item?: Item;
+
 }

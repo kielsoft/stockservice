@@ -25,13 +25,13 @@ export class StockTransfer extends BaseEntity {
     fromWarehouseLocationId: number
 
 
-    @ManyToOne(type => WarehouseLocation, locations => locations.transferredInItems, {nullable: true})
-    @Field(type => WarehouseLocation, {nullable: true})
-    toWarehouseLocation: WarehouseLocation;
+    @ManyToOne(type => Warehouse, w => w.transferredInItems, {nullable: true})
+    @Field(type => Warehouse, {nullable: true})
+    toWarehouse: Warehouse;
 
     @Column({nullable: true})
     @Field({nullable: true})
-    toWarehouseLocationId: number
+    toWarehouseId: number
 
     @Column()
     @Field()

@@ -2,7 +2,7 @@
 import { Resolver, Query, Args, Mutation } from "@nestjs/graphql";
 import { UseGuards } from "@nestjs/common";
 import { JwtAuthGuard, IJwtUserData, CurrentUser } from "../../auth.module";
-import { CommonService, StockTransferService, WarehouseLocationService } from "../services";
+import { CommonService, StockTransferService, WarehouseService } from "../services";
 import { StockTransfer } from "../entities";
 import { StockTransferCancelInput, StockTransferCreateInput, StockTransferFetchInput, StockTransferFetchResponseData, StockTransferReceiveInput, OK } from "../dtos";
 
@@ -11,17 +11,27 @@ import { StockTransferCancelInput, StockTransferCreateInput, StockTransferFetchI
 export class StockTransferResolver {
     constructor(
         private readonly service: StockTransferService,
-        private readonly warehouseLocationService: WarehouseLocationService,
+        private readonly warehouseService: WarehouseService,
+        private readonly commonService: CommonService,
     ) { }
 
     @Query(returns => StockTransferFetchResponseData)
     async stockTransferItems(@CurrentUser() userData: IJwtUserData, @Args("request", { nullable: true }) request?: StockTransferFetchInput) {
         let data = await this.service.fetchAll(request);
-        if(request?.toWarehouseLocationId){
-            data.warehouseLocation = await this.warehouseLocationService.getOne({id: request?.toWarehouseLocationId}, false)
+        if(!data?.pages && request?.requestNo){
+            data = await this.commonService.pullStockTransferItems(request.requestNo).then(record => {
+                return this.service.generateRequisitionRequest(record).catch(error => {
+                    console.log(error);
+                    return data;
+                })
+            });
+        } 
+
+        if(request?.toWarehouseId){
+            data.warehouse = await this.warehouseService.getOne({id: request?.toWarehouseId})
             .catch(error => {
-                throw new Error("Unknown receiving warehouse location ID");
-            })
+                throw new Error("Unknown error receiving warehouse ID");
+            });
         }
         return data;
     }
