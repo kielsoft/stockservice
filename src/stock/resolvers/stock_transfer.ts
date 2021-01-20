@@ -17,8 +17,6 @@ export class StockTransferResolver {
 
     @Query(returns => StockTransferFetchResponseData)
     async stockTransferItems(@CurrentUser() userData: IJwtUserData, @Args("request", { nullable: true }) request?: StockTransferFetchInput) {
-
-        console.log(request);
         let data = await this.service.fetchAll(request);
         if(!data?.pages && request?.requestNo){
             data = await this.commonService.pullStockTransferItems(request.requestNo).then(record => {

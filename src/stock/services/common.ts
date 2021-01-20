@@ -22,23 +22,22 @@ export class CommonService {
                 "Content-Type": "application/json",
             }
         }).toPromise()
-            .then(response => {
-                this.pullOutboundItems('557500020180814');
+            .then(async response => {
                 let data = response.data;
                 if(data && Object.keys(data).length){
                     if(config.environment === 'dev') {
                         data.jwt = data.jwt? 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJjLWlwcm9jdXJlLmNvbSIsImF1ZCI6IlRIRV9BVURJRU5DRSIsImlhdCI6MTYwOTQyNzM5NiwibmJmIjoxNjA5NDI3NDA2LCJleHAiOjE2MDk0Mjc0NTYsImRhdGEiOnsidXNlcl9pZCI6IjEiLCJjb250YWN0X25hbWUiOiJTdXBlciBBZG1pbiIsImJyYW5jaF9pZCI6IjQiLCJlbWFpbCI6ImNpYWRtaW5AYy1pbGVhc2luZy5jb20ifX0.j7_xFzJwubROK9H0tzOyo3U7wcv0ruMcz9IvuwqWxeI' : data.jwt;
                     }
-                    return this.camelCaseObjectMap(data)
-                    // await this.warehouseService.getOne({id: userData.branchId}).catch(error => {
-                    //     return this.warehouseService.create({
-                    //         id: userData.branchId,
-                    //         name:  `Warehouse - ${userData.branchId}`,
-                    //         address: `Address to Warehouse - ${userData.branchId}`,
-                    //     } as any);
-                    // });
+                    const userData = this.camelCaseObjectMap(data)
+                    await this.warehouseService.getOne({id: userData.branchId}).catch(error => {
+                        return this.warehouseService.create({
+                            id: userData.branchId,
+                            name:  `Warehouse - ${userData.branchId}`,
+                            address: `Address to Warehouse - ${userData.branchId}`,
+                        } as any);
+                    });
 
-                    // return userData;
+                    return userData;
                 }
                 throw Error("Invalid username and password");
             })

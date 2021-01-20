@@ -47,8 +47,11 @@ export class StockTransferService  {
                 }
                 
 
-                if(locationItem.qty < item.qty) 
-                throw StockTransferError(`SKU: ${item.sku} has only ${locationItem.qty} but ${item.qty} request`);
+                if(locationItem.qty < item.qty) {
+                    if(!config.commom.avoid_no_product_or_qty_error){
+                        throw StockTransferError(`SKU: ${item.sku} has only ${locationItem.qty} but ${item.qty} request`);
+                    }
+                }
 
                 item.locationItem = locationItem;
                 return item;
@@ -82,8 +85,10 @@ export class StockTransferService  {
             item.remark += String(`${item.remark}\n${(new Date()).toISOString()} => CREATED BY: userId: ${item.transferredById}`).trim();
 
             await this.repo.save(item).then(async newItem => {
-                item.locationItem.qty -= newItem.qty;
-                await item.locationItem.save();
+                if(!config.commom.avoid_no_product_or_qty_error){
+                    item.locationItem.qty -= newItem.qty;
+                    await item.locationItem.save();
+                }
 
                 newItems.push(await this.getOne({id: newItem.id}));
             });
