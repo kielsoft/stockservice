@@ -5,7 +5,7 @@ import { Status, StockTransfer, WarehouseLocationItem } from '../entities';
 import { OK, StockTransferGetInput, StockTransferCreateInput, StockTransferReceiveInput, StockTransferCancelInput, StockTransferFetchInput, StockTransferFetchResponseData, StockTransferData } from '../dtos';
 import { buildPaginationWithData } from './base';
 import { StockTransferError } from '../../errors';
-import config from 'src/config';
+import config from '../../config';
 import { WarehouseService } from './warehouse';
 import { WarehouseLocationService } from './warehouse_location';
 
